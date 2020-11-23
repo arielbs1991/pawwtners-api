@@ -15,10 +15,11 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.STRING,
             allowNull: true,
         },
-        location: {
-            type: DataTypes.STRING,
-            allowNull: true
-        },
+        // location: {
+        //     type: DataTypes.STRING,
+        //     allowNull: true
+        // },
+        //will likely need to change when users can upload images
         imageSrc: {
             type: DataTypes.STRING,
             allowNull: true,

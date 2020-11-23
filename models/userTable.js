@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 
 module.exports = function (sequelize, DataTypes) {
     var User = sequelize.define("User", {
+        //will I need to add an image storage variable?
         firstName: {
             type: DataTypes.STRING,
             allowNull: false,

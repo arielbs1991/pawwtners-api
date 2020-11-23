@@ -2,9 +2,10 @@ const router = require("express").Router();
 const db = require("../models");
 const bcrypt = require("bcrypt");
 
-//TODO: Determine base route for this file
+//BASE ROUTE FOR THIS FILE: /api/user
 
 //TESTING ROUTE TODO: Remove or comment out upon deployment for security
+//tested + 
 router.get('/userlist/', (req, res) => {
     // if (!req.session.user) {
     //     res.status(403).end();
@@ -20,11 +21,11 @@ router.get('/userlist/', (req, res) => {
     // }
 });
 
-router.get('/finduser/', (req, res) => {
+//tested +
+router.get('/finduser/:id', (req, res) => {
     db.User.findOne({
         where: {
-            id: req.body.id
-            //odd chance may need to use userId, who knows
+            id: req.params.id
         }
     })
         .then(dbUser => {
@@ -36,10 +37,11 @@ router.get('/finduser/', (req, res) => {
         })
 });
 
-//TODO: Sessions, login, logout
+//TODO: Sessions, login, logout, update, delete
 
 //create new user on signup -- may get FB or IG data
 
+//tested +
 router.post('/', (req, res) => {
     db.User.create({
         firstName: req.body.firstName,

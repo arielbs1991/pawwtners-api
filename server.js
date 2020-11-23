@@ -53,12 +53,12 @@ app.get("/", (req, res) => {
 })
 
 // TODO: change to our controller routes
-// const usersController = require("./controllers/usersController.js");
-// app.use("/api/users", usersController);
+const userController = require("./controllers/userController.js");
+app.use("/api/user", userController);
 // const matchesController = require("./controllers/matchesController.js");
 // app.use("/api/matches", matchesController);
-// const sheltersController = require("./controllers/sheltersController.js");
-// app.use("/api/shelterAPI", sheltersController);
+const petController = require("./controllers/petController.js");
+app.use("/api/shelterAPI", petController);
 // const petAPIController = require("./controllers/petAPIController.js");
 // app.use("/api/petAPI", petAPIController);
 // const animalController = require("./controllers/animalController.js");
