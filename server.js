@@ -7,6 +7,7 @@ const morgan = require("morgan"); //added for mail
 const nodemailer = require("nodemailer"); //added for mail
 const cors = require("cors"); //added for cors
 require('dotenv').config(); //added for mail
+const sendSMS = require('./utils/twilioAPI/sendSMS');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -55,10 +56,10 @@ app.get("/", (req, res) => {
 // TODO: change to our controller routes
 const userController = require("./controllers/userController.js");
 app.use("/api/user", userController);
-// const matchesController = require("./controllers/matchesController.js");
-// app.use("/api/matches", matchesController);
+const matchController = require("./controllers/matchController.js");
+app.use("/api/match", matchController);
 const petController = require("./controllers/petController.js");
-app.use("/api/shelterAPI", petController);
+app.use("/api/pets", petController);
 // const petAPIController = require("./controllers/petAPIController.js");
 // app.use("/api/petAPI", petAPIController);
 // const animalController = require("./controllers/animalController.js");
@@ -69,9 +70,11 @@ app.use("/api/shelterAPI", petController);
 
 
 //TODO: once our db is where we want it, change to force:false
-db.sequelize.sync({ force: true }).then(function () {
+db.sequelize.sync({ force: false }).then(function () {
   app.listen(PORT, function () {
     console.log("listen to me, heroku. Changes have been made, I swear");
     console.log("App listening on PORT " + PORT);
+    //testing sms
+    // sendSMS;
   });
 });

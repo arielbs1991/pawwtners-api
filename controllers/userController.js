@@ -37,9 +37,29 @@ router.get('/finduser/:id', (req, res) => {
         })
 });
 
+//Return user and pet data by user id tested+
+router.get('/userpets/', (req, res) => {
+    db.User.findOne({
+        where: {
+            id: req.body.id
+        },
+        include: {
+            model: db.Pet
+        }
+    })
+    .then(dbUser => {
+        console.log("User Pets: ", dbUser);
+        res.json(dbUser);
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).end();
+    })
+})
+
 //TODO: Sessions, login, logout, update, delete
 
-//create new user on signup -- may get FB or IG data
+//create new user on signup -- TODO: may get FB or IG data
 
 //tested +
 router.post('/', (req, res) => {
