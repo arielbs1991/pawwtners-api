@@ -1,0 +1,2 @@
+DROP DATABASE IF EXISTS pupples;
+CREATE DATABASE pupples;
