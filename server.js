@@ -7,7 +7,7 @@ const morgan = require("morgan"); //added for mail
 const nodemailer = require("nodemailer"); //added for mail
 const cors = require("cors"); //added for cors
 require('dotenv').config(); //added for mail
-const sendSMS = require('./utils/twilioAPI/sendSMS');
+// const sendSMS = require('./utils/twilioAPI/sendSMS');
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());

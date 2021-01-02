@@ -3,7 +3,7 @@ const auth_code = require('./getIGAuth.js');
 require('dotenv').config();
 
 const getIGToken = () => {
-    const instagram_app_id = ''
+    const instagram_app_id = process.env.FACEBOOK_APP_ID
     const scope = [user_profile, user_media]
     const redirect_uri = 'localhost:3001/api/auth'
 
