@@ -4,7 +4,8 @@
   "description": "Database storage for Pupples",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -29,8 +30,10 @@
     "mysql2": "^2.2.5",
     "nodemailer": "^6.4.16",
     "nodemon": "^2.0.6",
+    "react": "^17.0.1",
     "sequelize": "^6.3.5",
-    "twilio": "^3.52.0",
+    "twilio": "^3.54.1",
     "twilio-video": "^2.8.0"
-  }
+  },
+  "devDependencies": {}
 }
