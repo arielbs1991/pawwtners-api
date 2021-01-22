@@ -1,4 +1,5 @@
 //TODO: get super secret code from google so this actually works -- thought: have Jay put a credit card down so no future charges are incurred by me
+require('dotenv').config();
 
 function initMap() {
     const map = new google.maps.Map(document.getElementById("map"), {
@@ -12,7 +13,13 @@ function initMap() {
     document.getElementById("submit").addEventListener("click", () => {
         geocodeAddress(geocoder, map);
     })
-}
+};
+
+//exists in matchController.js
+// function getMapAPIKey() {
+//     const mapAPIKey = process.env.MAP_API;
+//     return mapAPIKey;
+// }
 
 function geocodeAddress(geocoder, resultsMap) {
     const address = document.getElementById("address").nodeValue;
