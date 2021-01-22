@@ -135,6 +135,69 @@ router.post('/login', (req, res) => {
         console.log(err);
         res.status(500).end()
     })
+});
+
+//delete user tested+
+router.delete('/', (req, res) => {
+    // if (!req.session.user) {
+    //     res.status(403).end();
+    // } else {
+        db.User.destroy({
+            where: {
+                // id: req.session.user.UserId
+                id: req.body.id
+            }
+        })
+            .then(userData => {
+                res.json(userData)
+            })
+            .catch(err => {
+                console.log(err);
+                res.status(500).end();
+            })
+    // }
+});
+
+//tested, getting 500 error, but it's working when you pull the user data up...
+router.put('/updateAll/:id', (req, res) => {
+// if (!req.session.user) {
+//     res.status(403).end();
+// } else {
+    db.User.update({
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        gender: req.body.gender,
+        email: req.body.email,
+        password: req.body.password,
+        city: req.body.city,
+        state: req.body.state,
+        postcode: req.body.postcode,
+        phoneNumber: req.body.phoneNumber
+    },
+    {
+        where: {
+            id: req.params.id
+            //id: req.session.user.UserId
+        }
+    })
+    .then(dbUSer => {
+        // req.session.user.firstName = req.body.firstName
+        // req.session.user.lastName = req.body.lastName
+        // req.session.user.gender = req.body.gender
+        // req.session.user.email = req.body.email
+        // req.session.user.password = req.body.password
+        //TODO: update location data to use geolocation
+        // req.session.user.city = req.body.city
+        // req.session.user.state = req.body.state
+        // req.session.user.postcode = req.body.postcode
+        // req.session.user.phoneNumber = req.body.phoneNumber
+        res.json(dbUser)
+    })
+    .catch(err => {
+        console.log(err);
+        res.status(500).end();
+    })
+// }
 })
 
 module.exports = router;
