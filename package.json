@@ -1,7 +1,7 @@
 {
-  "name": "pupples-api",
+  "name": "pawwtners-api",
   "version": "1.0.0",
-  "description": "Database storage for Pupples",
+  "description": "Database storage for pawwtners",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/arielbs1991/pupples-api.git"
+    "url": "git+https://github.com/arielbs1991/pawwtners-api.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/arielbs1991/pupples-api/issues"
+    "url": "https://github.com/arielbs1991/pawwtners-api/issues"
   },
-  "homepage": "https://github.com/arielbs1991/pupples-api#readme",
+  "homepage": "https://github.com/arielbs1991/pawwtners-api#readme",
   "dependencies": {
     "bcrypt": "^5.0.0",
     "config": "^3.3.2",

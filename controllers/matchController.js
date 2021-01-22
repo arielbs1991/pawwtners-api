@@ -3,6 +3,15 @@ const db = require('../models');
 
 //BASE URL FOR ALL ROUTES ON THIS PAGE: /api/match
 
+//route to pass map api key to front end
+router.get('/mapAPI', (req, res) => {
+    // if (!req.session.user || !req.session.shelter) {
+    //     res.status(403).end();
+    // } else {
+    res.json(process.env.MAP_API);
+    // }
+})
+
 //create a new match tested+
 router.post('/', (req, res) => {
     db.Match.create({
@@ -34,7 +43,7 @@ router.get('/all/', (req, res) => {
 })
 
 //find all matches by user id (TODO: change to use sessions data) tested+
-router.get('/matches/:id', (req, res) => {
+router.get('/:id', (req, res) => {
     db.Match.findAll({
         where: {
             UserId: req.params.id
