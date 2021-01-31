@@ -71,7 +71,7 @@ router.post('/', (req, res) => {
         gender: req.body.gender,
         password: req.body.password,
         city: req.body.city,
-        state: req.body.state,
+        state: req.body.State,
         postcode: req.body.postcode,
         phoneNumber: req.body.phoneNumber
     })
@@ -113,7 +113,7 @@ router.post('/login', (req, res) => {
             if (
                 bcrypt.compareSync
                     (req.body.password, user.password)) {
-                const { data: { access_token } } = await getIGToken()
+                // const { data: { access_token } } = await getIGToken()
                 req.session.user = {
                     firstName: user.firstName,
                     lastName: user.lastName,
@@ -124,7 +124,7 @@ router.post('/login', (req, res) => {
                     state: user.state,
                     postcode: user.postcode,
                     phoneNumber: user.phoneNumber,
-                    token: access_token
+                    // token: access_token
                 }
                 res.json(req.session);
             } else {
