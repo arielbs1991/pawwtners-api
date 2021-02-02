@@ -3,6 +3,8 @@ const db = require("../models");
 const bcrypt = require("bcrypt");
 const getIGToken = require('../utils/facebookAPI/getIGToken.js');
 
+const saltRounds = 12;
+
 //BASE ROUTE FOR THIS FILE: /api/user
 
 //TESTING ROUTE TODO: Remove or comment out upon deployment for security
@@ -48,14 +50,14 @@ router.get('/userpets/', (req, res) => {
             model: db.Pet
         }
     })
-    .then(dbUser => {
-        console.log("User Pets: ", dbUser);
-        res.json(dbUser);
-    })
-    .catch(err => {
-        console.log(err);
-        res.status(500).end();
-    })
+        .then(dbUser => {
+            console.log("User Pets: ", dbUser);
+            res.json(dbUser);
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).end();
+        })
 })
 
 //TODO: Sessions, login, logout, update, delete
@@ -63,24 +65,29 @@ router.get('/userpets/', (req, res) => {
 //create new user on signup -- TODO: may get FB or IG data
 
 //tested +
-router.post('/', (req, res) => {
-    db.User.create({
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        email: req.body.email,
-        gender: req.body.gender,
-        password: req.body.password,
-        city: req.body.city,
-        state: req.body.state,
-        postcode: req.body.postcode,
-        phoneNumber: req.body.phoneNumber
-    })
-    .then(userData => {
-        res.json(userData)
-    })
-    .catch(err => {
-        console.log(err);
-        res.status(500).end();
+router.post('/', (req, res, next) => {
+    bcrypt.hash(req.body.password, saltRounds, (error, hash) => {
+
+        db.User.create({
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            email: req.body.email,
+            gender: req.body.gender,
+            password: hash,
+            city: req.body.city,
+            state: req.body.State,
+            postcode: req.body.postcode,
+            phoneNumber: req.body.phoneNumber
+        })
+            .then(userData => {
+                res.json(userData);
+                res.status(201).send(userData);
+            })
+            .catch(error => {
+                console.log(error);
+                next(error);
+                res.status(500).end();
+            })
     })
 });
 
@@ -96,8 +103,8 @@ router.get("/logout", (req, res) => {
     // if (!req.session.user) {
     //     res.status(403).end();
     // } else {
-        req.session.destroy();
-        res.send("logout complete!")
+    req.session.destroy();
+    res.send("logout complete!")
     // }
 })
 
@@ -113,7 +120,7 @@ router.post('/login', (req, res) => {
             if (
                 bcrypt.compareSync
                     (req.body.password, user.password)) {
-                const { data: { access_token } } = await getIGToken()
+                // const { data: { access_token } } = await getIGToken()
                 req.session.user = {
                     firstName: user.firstName,
                     lastName: user.lastName,
@@ -121,10 +128,10 @@ router.post('/login', (req, res) => {
                     email: user.email,
                     UserId: user.id,
                     city: user.city,
-                    state: user.state,
+                    state: user.State,
                     postcode: user.postcode,
                     phoneNumber: user.phoneNumber,
-                    token: access_token
+                    // token: access_token
                 }
                 res.json(req.session);
             } else {
@@ -142,27 +149,27 @@ router.delete('/', (req, res) => {
     // if (!req.session.user) {
     //     res.status(403).end();
     // } else {
-        db.User.destroy({
-            where: {
-                // id: req.session.user.UserId
-                id: req.body.id
-            }
+    db.User.destroy({
+        where: {
+            // id: req.session.user.UserId
+            id: req.body.id
+        }
+    })
+        .then(userData => {
+            res.json(userData)
         })
-            .then(userData => {
-                res.json(userData)
-            })
-            .catch(err => {
-                console.log(err);
-                res.status(500).end();
-            })
+        .catch(err => {
+            console.log(err);
+            res.status(500).end();
+        })
     // }
 });
 
 //tested, getting 500 error, but it's working when you pull the user data up...
 router.put('/updateAll/:id', (req, res) => {
-// if (!req.session.user) {
-//     res.status(403).end();
-// } else {
+    // if (!req.session.user) {
+    //     res.status(403).end();
+    // } else {
     db.User.update({
         firstName: req.body.firstName,
         lastName: req.body.lastName,
@@ -174,30 +181,30 @@ router.put('/updateAll/:id', (req, res) => {
         postcode: req.body.postcode,
         phoneNumber: req.body.phoneNumber
     },
-    {
-        where: {
-            id: req.params.id
-            //id: req.session.user.UserId
-        }
-    })
-    .then(dbUSer => {
-        // req.session.user.firstName = req.body.firstName
-        // req.session.user.lastName = req.body.lastName
-        // req.session.user.gender = req.body.gender
-        // req.session.user.email = req.body.email
-        // req.session.user.password = req.body.password
-        //TODO: update location data to use geolocation
-        // req.session.user.city = req.body.city
-        // req.session.user.state = req.body.state
-        // req.session.user.postcode = req.body.postcode
-        // req.session.user.phoneNumber = req.body.phoneNumber
-        res.json(dbUser)
-    })
-    .catch(err => {
-        console.log(err);
-        res.status(500).end();
-    })
-// }
+        {
+            where: {
+                id: req.params.id
+                //id: req.session.user.UserId
+            }
+        })
+        .then(dbUSer => {
+            req.session.user.firstName = req.body.firstName
+            req.session.user.lastName = req.body.lastName
+            req.session.user.gender = req.body.gender
+            req.session.user.email = req.body.email
+            req.session.user.password = req.body.password
+            //TODO: update location data to use geolocation
+            req.session.user.city = req.body.city
+            req.session.user.state = req.body.state
+            req.session.user.postcode = req.body.postcode
+            req.session.user.phoneNumber = req.body.phoneNumber
+            res.json(dbUser)
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).end();
+        })
+    // }
 })
 
 module.exports = router;
