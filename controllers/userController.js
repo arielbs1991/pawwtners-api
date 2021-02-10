@@ -75,13 +75,13 @@ router.post('/', (req, res, next) => {
             gender: req.body.gender,
             password: hash,
             city: req.body.city,
-            state: req.body.State,
+            State: req.body.State,
             postcode: req.body.postcode,
             phoneNumber: req.body.phoneNumber
         })
             .then(userData => {
                 res.json(userData);
-                res.status(201).send(userData);
+                res.status(201);
             })
             .catch(error => {
                 console.log(error);
@@ -92,11 +92,15 @@ router.post('/', (req, res, next) => {
 });
 
 router.get('/readsessions', (req, res) => {
-    if (!req.session.user) {
-        res.status(403).end();
-    } else {
-        res.json(req.session.user)
-    }
+    
+    // if (!req.session.user) {
+    //     res.status(403).end();
+    // } else {
+    
+    console.log("readsessions results back-end: ", req.session);
+    res.json(req.session.user)
+    
+    // }
 })
 
 router.get("/logout", (req, res) => {
@@ -109,6 +113,9 @@ router.get("/logout", (req, res) => {
 })
 
 router.post('/login', (req, res) => {
+
+    // const user = req.session.user;
+
     db.User.findOne({
         where: {
             email: req.body.email
@@ -121,19 +128,26 @@ router.post('/login', (req, res) => {
                 bcrypt.compareSync
                     (req.body.password, user.password)) {
                 // const { data: { access_token } } = await getIGToken()
-                req.session.user = {
+                // user = {
+                    req.session.user = {
                     firstName: user.firstName,
                     lastName: user.lastName,
                     gender: user.gender,
                     email: user.email,
-                    UserId: user.id,
+                    password: user.password,
                     city: user.city,
-                    state: user.State,
+                    State: user.State,
                     postcode: user.postcode,
                     phoneNumber: user.phoneNumber,
+                    UserId: user.id,
                     // token: access_token
                 }
-                res.json(req.session);
+                // console.log("login sessions data: ", req.session, "user:", user);
+                console.log("login sessions data: ", req.session);
+                // sessionStorage.setItem("user", JSON.stringify(user));
+                console.log("user: ", user);
+                res.json(user);
+                // res.json(req.session);
             } else {
                 res.status(401).send("Incorrect password")
             }
@@ -177,7 +191,7 @@ router.put('/updateAll/:id', (req, res) => {
         email: req.body.email,
         password: req.body.password,
         city: req.body.city,
-        state: req.body.state,
+        State: req.body.State,
         postcode: req.body.postcode,
         phoneNumber: req.body.phoneNumber
     },
@@ -195,7 +209,7 @@ router.put('/updateAll/:id', (req, res) => {
             req.session.user.password = req.body.password
             //TODO: update location data to use geolocation
             req.session.user.city = req.body.city
-            req.session.user.state = req.body.state
+            req.session.user.State = req.body.State
             req.session.user.postcode = req.body.postcode
             req.session.user.phoneNumber = req.body.phoneNumber
             res.json(dbUser)
