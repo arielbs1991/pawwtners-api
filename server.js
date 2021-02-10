@@ -12,6 +12,16 @@ require('dotenv').config(); //added for mail
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+//Comment out on deployed
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 2 * 60 * 60 * 1000,
+  }
+}))
+
 app.use(morgan('dev')) //added for mail
 
 // TODO:change to front-end deployed link when front end is deployed
@@ -39,16 +49,6 @@ app.use(cors({
 //   }
 // }))
 
-//Comment out on deployed
-app.use(session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 2 * 60 * 60 * 1000,
-  }
-}))
-
 app.get("/", (req, res) => {
   res.send("nothing to see here");
 })
@@ -60,13 +60,6 @@ const matchController = require("./controllers/matchController.js");
 app.use("/api/match", matchController);
 const petController = require("./controllers/petController.js");
 app.use("/api/pets", petController);
-// const petAPIController = require("./controllers/petAPIController.js");
-// app.use("/api/petAPI", petAPIController);
-// const animalController = require("./controllers/animalController.js");
-// app.use("/api/animals", animalController);
-// const emailController = require("./controllers/emailController.js");
-// app.use(emailController);
-
 
 
 //TODO: once our db is where we want it, change to force:false
