@@ -64,6 +64,11 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.STRING,
             allowNull: true,
             notEmpty: false
+        },
+        bio: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            notEmpty: false
         }
     })
 
@@ -78,9 +83,5 @@ module.exports = function (sequelize, DataTypes) {
     };
 
 
-    // REMOVE COMMENT WHEN YOU WANT TO HASH AND SALT PASSWORDS
-    // User.beforeCreate(function (user) {
-    //     user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10), null)
-    // })
     return User;
 };
