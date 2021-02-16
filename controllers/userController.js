@@ -69,6 +69,7 @@ router.post('/', (req, res, next) => {
     bcrypt.hash(req.body.password, saltRounds, (error, hash) => {
 
         db.User.create({
+            username: req.body.username,
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             email: req.body.email,
@@ -77,7 +78,9 @@ router.post('/', (req, res, next) => {
             city: req.body.city,
             State: req.body.State,
             postcode: req.body.postcode,
-            phoneNumber: req.body.phoneNumber
+            phoneNumber: req.body.phoneNumber,
+            bio: req.body.bio
+
         })
             .then(userData => {
                 res.json(userData);
@@ -92,15 +95,15 @@ router.post('/', (req, res, next) => {
 });
 
 router.get('/readsessions', (req, res) => {
-    
-    // if (!req.session.user) {
-    //     res.status(403).end();
-    // } else {
-    
-    console.log("readsessions results back-end: ", req.session);
-    res.json(req.session.user)
-    
-    // }
+
+    if (!req.session.user) {
+        res.status(403).end();
+    } else {
+
+        console.log("readsessions results back-end: ", req.session);
+        res.json(req.session.user)
+
+    }
 })
 
 router.get("/logout", (req, res) => {
@@ -129,7 +132,8 @@ router.post('/login', (req, res) => {
                     (req.body.password, user.password)) {
                 // const { data: { access_token } } = await getIGToken()
                 // user = {
-                    req.session.user = {
+                req.session.user = {
+                    username: user.username,
                     firstName: user.firstName,
                     lastName: user.lastName,
                     gender: user.gender,
@@ -140,6 +144,7 @@ router.post('/login', (req, res) => {
                     postcode: user.postcode,
                     phoneNumber: user.phoneNumber,
                     UserId: user.id,
+                    bio: user.bio
                     // token: access_token
                 }
                 // console.log("login sessions data: ", req.session, "user:", user);
@@ -160,65 +165,71 @@ router.post('/login', (req, res) => {
 
 //delete user tested+
 router.delete('/', (req, res) => {
-    // if (!req.session.user) {
-    //     res.status(403).end();
-    // } else {
-    db.User.destroy({
-        where: {
-            // id: req.session.user.UserId
-            id: req.body.id
-        }
-    })
-        .then(userData => {
-            res.json(userData)
+    if (!req.session.user) {
+        res.status(403).end();
+    } else {
+        db.User.destroy({
+            where: {
+                // id: req.session.user.UserId
+                id: req.body.id
+            }
         })
-        .catch(err => {
-            console.log(err);
-            res.status(500).end();
-        })
-    // }
+            .then(userData => {
+                res.json(userData)
+            })
+            .catch(err => {
+                console.log(err);
+                res.status(500).end();
+            })
+    }
 });
 
 //tested, getting 500 error, but it's working when you pull the user data up...
-router.put('/updateAll/:id', (req, res) => {
-    // if (!req.session.user) {
-    //     res.status(403).end();
-    // } else {
-    db.User.update({
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        gender: req.body.gender,
-        email: req.body.email,
-        password: req.body.password,
-        city: req.body.city,
-        State: req.body.State,
-        postcode: req.body.postcode,
-        phoneNumber: req.body.phoneNumber
-    },
-        {
-            where: {
-                id: req.params.id
-                //id: req.session.user.UserId
-            }
-        })
-        .then(dbUSer => {
-            req.session.user.firstName = req.body.firstName
-            req.session.user.lastName = req.body.lastName
-            req.session.user.gender = req.body.gender
-            req.session.user.email = req.body.email
-            req.session.user.password = req.body.password
-            //TODO: update location data to use geolocation
-            req.session.user.city = req.body.city
-            req.session.user.State = req.body.State
-            req.session.user.postcode = req.body.postcode
-            req.session.user.phoneNumber = req.body.phoneNumber
-            res.json(dbUser)
-        })
-        .catch(err => {
-            console.log(err);
-            res.status(500).end();
-        })
-    // }
+router.put('/updateAll/', (req, res) => {
+    if (!req.session.user) {
+        res.status(403).end();
+    } else {
+        db.User.update({
+            // username: req.body.username,
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            gender: req.body.gender,
+            email: req.body.email,
+            password: req.body.password,
+            city: req.body.city,
+            State: req.body.State,
+            postcode: req.body.postcode,
+            phoneNumber: req.body.phoneNumber,
+            bio: req.body.bio
+        },
+            {
+                where: {
+                    // id: req.params.id
+                    id: req.session.user.UserId
+                }
+            })
+            .then(dbUser => {
+                req.session.user.firstName = req.body.firstName
+                req.session.user.lastName = req.body.lastName
+                req.session.user.gender = req.body.gender
+                req.session.user.email = req.body.email
+                req.session.user.password = req.body.password
+                //TODO: update location data to use geolocation
+                req.session.user.city = req.body.city
+                req.session.user.State = req.body.State
+                req.session.user.postcode = req.body.postcode
+                req.session.user.phoneNumber = req.body.phoneNumber
+                req.session.user.bio = req.body.bio
+                res.json(dbUser)
+            })
+            .catch(err => {
+                console.log(err);
+                res.status(500).end();
+            })
+    }
+
+    //TODO: update user bio only
+    //TODO: update user password with password confirmation through email
 })
 
 module.exports = router;

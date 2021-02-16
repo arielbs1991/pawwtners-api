@@ -5,6 +5,14 @@ const bcrypt = require("bcrypt");
 module.exports = function (sequelize, DataTypes) {
     var User = sequelize.define("User", {
         //will I need to add an image storage variable?
+        // username: {
+        //     type: DataTypes.STRING,
+        //     allowNull: false,
+        //     validate: {
+        //         len: [1]
+        //     },
+        //     unique: true
+        // },
         firstName: {
             type: DataTypes.STRING,
             allowNull: false,
@@ -64,6 +72,11 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.STRING,
             allowNull: true,
             notEmpty: false
+        },
+        bio: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            notEmpty: false
         }
     })
 
@@ -78,9 +91,5 @@ module.exports = function (sequelize, DataTypes) {
     };
 
 
-    // REMOVE COMMENT WHEN YOU WANT TO HASH AND SALT PASSWORDS
-    // User.beforeCreate(function (user) {
-    //     user.password = bcrypt.hashSync(user.password, bcrypt.genSaltSync(10), null)
-    // })
     return User;
 };
