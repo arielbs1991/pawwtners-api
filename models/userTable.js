@@ -7,24 +7,27 @@ module.exports = function (sequelize, DataTypes) {
         //will I need to add an image storage variable?
         firstName: {
             type: DataTypes.STRING,
-            allowNull: false,
-            validate: {
-                len: [1]
-            }
+            allowNull: true,
+            notEmpty: false,
+            // validate: {
+            //     len: [1]
+            // }
         },
         lastName: {
             type: DataTypes.STRING,
-            allowNull: false,
-            validate: {
-                len: [1]
-            }
+            allowNull: true,
+            notEmpty: false,
+            // validate: {
+            //     len: [1]
+            // }
         },
         gender: {
             type: DataTypes.STRING,
-            allowNull: false,
-            validate: {
-                len: [1]
-            }
+            allowNull: true,
+            notEmpty: false,
+            // validate: {
+            //     len: [1]
+            // }
         },
         password: {
             type: DataTypes.STRING,
@@ -41,24 +44,27 @@ module.exports = function (sequelize, DataTypes) {
         },
         city: {
             type: DataTypes.STRING,
-            allowNull: false,
-            validate: {
-                len: [1]
-            }
+            allowNull: true,
+            notEmpty: false,
+            // validate: {
+            //     len: [1]
+            // }
         },
         State: {
             type: DataTypes.STRING,
-            allowNull: false,
-            validate: {
-                len: [1]
-            }
+            allowNull: true,
+            notEmpty: false,
+            // validate: {
+            //     len: [1]
+            // }
         },
         postcode: {
             type: DataTypes.STRING,
-            allowNull: false,
-            validate: {
-                len: [1]
-            }
+            allowNull: true,
+            notEmpty: false,
+            // validate: {
+            //     len: [1]
+            // }
         },
         phoneNumber: {
             type: DataTypes.STRING,
@@ -66,6 +72,11 @@ module.exports = function (sequelize, DataTypes) {
             notEmpty: false
         },
         bio: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            notEmpty: false
+        },
+        tagline: {
             type: DataTypes.STRING,
             allowNull: true,
             notEmpty: false

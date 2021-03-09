@@ -9,7 +9,6 @@ const cors = require("cors"); //added for cors
 require('dotenv').config(); //added for mail
 const passport = require('passport');
 const Strategy = require('passport-facebook').Strategy;
-const config = require('./config');
 
 // const sendSMS = require('./utils/twilioAPI/sendSMS');
 
@@ -58,8 +57,8 @@ app.get("/", (req, res) => {
 })
 
 passport.use(new Strategy({
-  clientID: config.FACEBOOK_CLIENT_ID,
-  clientSecret: config.FACEBOOK_CLIENT_SECRET,
+  clientID: process.env.FACEBOOK_APP_ID,
+  clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
   callbackURL: '/facebook/callback',
   profileFields: ['id', 'displayName', 'email', 'name', 'photos'],
   passReqToCallback: true,
@@ -85,8 +84,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.get('/facebook', passport.authenticate('facebook'));
-app.get('/facebook/callback', passport.authenticate('facebook', { failureRedirect: `${config.FRONTEND_HOST}/error`}), (req, res) => {
-  res.send(`${config.FRONTEND_HOST}/success`);
+app.get('/facebook/callback', passport.authenticate('facebook', { failureRedirect: `${process.env.FRONTEND_HOST}/error`}), (req, res) => {
+  res.send(`${process.env.FRONTEND_HOST}/success`);
 });
 
 const userController = require("./controllers/userController.js");
