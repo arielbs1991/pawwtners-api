@@ -60,8 +60,6 @@ router.get('/userpets/', (req, res) => {
         })
 })
 
-//TODO: Sessions, login, logout, update, delete
-
 //create new user on signup -- TODO: may get FB or IG data
 
 //tested +
