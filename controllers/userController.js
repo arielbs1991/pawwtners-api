@@ -60,8 +60,6 @@ router.get('/userpets/', (req, res) => {
         })
 })
 
-//TODO: Sessions, login, logout, update, delete
-
 //create new user on signup -- TODO: may get FB or IG data
 
 //tested +
@@ -79,7 +77,8 @@ router.post('/', (req, res, next) => {
             State: req.body.State,
             postcode: req.body.postcode,
             phoneNumber: req.body.phoneNumber,
-            bio: req.body.bio
+            bio: req.body.bio,
+            tagline: req.body.tagline
 
         })
             .then(userData => {
@@ -144,7 +143,8 @@ router.post('/login', (req, res) => {
                     postcode: user.postcode,
                     phoneNumber: user.phoneNumber,
                     UserId: user.id,
-                    bio: user.bio
+                    bio: user.bio,
+                    tagline: user.tagline
                     // token: access_token
                 }
                 // console.log("login sessions data: ", req.session, "user:", user);
@@ -200,7 +200,8 @@ router.put('/updateAll/', (req, res) => {
             State: req.body.State,
             postcode: req.body.postcode,
             phoneNumber: req.body.phoneNumber,
-            bio: req.body.bio
+            bio: req.body.bio,
+            tagline: req.body.tagline
         },
             {
                 where: {
@@ -220,6 +221,7 @@ router.put('/updateAll/', (req, res) => {
                 req.session.user.postcode = req.body.postcode
                 req.session.user.phoneNumber = req.body.phoneNumber
                 req.session.user.bio = req.body.bio
+                req.session.user.tagline = req.body.tagline
                 res.json(dbUser)
             })
             .catch(err => {
