@@ -92,6 +92,42 @@ router.post('/', (req, res, next) => {
             })
     })
 });
+router.post('/fbCreate', (req, res, next) => {
+    // bcrypt.hash(req.body.password, saltRounds, (error, hash) => {
+
+        db.User.create({
+
+            id: res.id,
+            displayName: res.displayName,
+            email: res.email,
+            name: res.name,
+            photos: res.photos
+
+            // username: req.body.username,
+            // firstName: req.body.firstName,
+            // lastName: req.body.lastName,
+            // email: req.body.email,
+            // gender: req.body.gender,
+            // password: hash,
+            // city: req.body.city,
+            // State: req.body.State,
+            // postcode: req.body.postcode,
+            // phoneNumber: req.body.phoneNumber,
+            // bio: req.body.bio,
+            // tagline: req.body.tagline
+
+        })
+            .then(userData => {
+                res.json(userData);
+                res.status(201);
+            })
+            .catch(error => {
+                console.log(error);
+                next(error);
+                res.status(500).end();
+            })
+    // })
+});
 
 router.get('/readsessions', (req, res) => {
 
@@ -155,6 +191,60 @@ router.post('/login', (req, res) => {
                 // res.json(req.session);
             } else {
                 res.status(401).send("Incorrect password")
+            }
+        }
+    }).catch(err => {
+        console.log(err);
+        res.status(500).end()
+    })
+});
+
+router.post('/fbLogin', (req, res) => {
+
+    // const user = req.session.user;
+
+    db.User.findOne({
+        where: {
+            email: res.email
+        }
+    }).then(async user => {
+        if (!user) {
+            res.status(404).send("No such user exists");
+        } else {
+            if (
+                // bcrypt.compareSync
+                    (res.email, user.email)) {
+                // const { data: { access_token } } = await getIGToken()
+                // user = {
+                req.session.user = {
+                    id: user.id,
+                    displayName: user.displayName,
+                    email: user.email,
+                    name: user.name,
+                    photos: user.photos,
+                    // username: user.username,
+                    // firstName: user.firstName,
+                    // lastName: user.lastName,
+                    // gender: user.gender,
+                    // email: user.email,
+                    // password: user.password,
+                    // city: user.city,
+                    // State: user.State,
+                    // postcode: user.postcode,
+                    // phoneNumber: user.phoneNumber,
+                    // UserId: user.id,
+                    // bio: user.bio,
+                    // tagline: user.tagline
+                    // token: access_token
+                }
+                // console.log("login sessions data: ", req.session, "user:", user);
+                console.log("login sessions data: ", req.session);
+                // sessionStorage.setItem("user", JSON.stringify(user));
+                console.log("user: ", user);
+                res.json(user);
+                // res.json(req.session);
+            } else {
+                res.status(401).send("Incorrect user")
             }
         }
     }).catch(err => {

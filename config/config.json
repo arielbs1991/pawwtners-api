@@ -2,17 +2,19 @@
     "development": {
       "username": "root",
       "password": "password",
-      "database": "pawwtners",
-      "host": "127.0.0.1",
-      "dialect": "mysql"
+      "database": "lxodbcdsn",
+      "port": 1522,
+      "host": "3d318f88f00520e9c6c9.lxc-db.com",
+      "dialect": "lxdb",
+      "UseTZ": "America/Los_Angeles" 
     },
     "test": {
       "use_env_variable":"JAWSDB_URL",
-      "dialect": "mysql"
+      "dialect": "lxdb"
     },
     "production": {
       "use_env_variable":"JAWSDB_URL",
-      "dialect": "mysql"
+      "dialect": "lxdb"
     }
   }
   

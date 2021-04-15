@@ -63,7 +63,7 @@ passport.use(new Strategy({
   profileFields: ['id', 'displayName', 'email', 'name', 'photos'],
   passReqToCallback: true,
 },
-function(accessToken, refreshToken, profile, cb) {
+function(req, accessToken, refreshToken, profile, cb) {
   // save the profile on the Database
   // save the accessToken and refreshToken if you need to call facebook apis later on
   return cb(null, profile);
