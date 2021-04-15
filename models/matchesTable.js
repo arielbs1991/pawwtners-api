@@ -1,4 +1,4 @@
-const Sequelize = require("sequelize");
+const Sequelize = require("sequelize-lx-win");
 const sequelize = require("./index");
 
 module.exports = function (sequelize, DataTypes) {
