@@ -93,8 +93,8 @@ app.use("/api/user", userController);
 const matchController = require("./controllers/matchController.js");
 app.use("/api/match", matchController);
 const petController = require("./controllers/petController.js");
-const { use } = require("./controllers/userController.js");
 app.use("/api/pets", petController);
+// const { use } = require("./controllers/userController.js");
 
 
 //TODO: once our db is where we want it, change to force:false
