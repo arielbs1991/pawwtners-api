@@ -1,7 +1,10 @@
 const router = require("express").Router();
 const db = require("../models");
+const sequelize = require('../models')
+const Op = sequelize.Sequelize.Op;
 const bcrypt = require("bcrypt");
 const getIGToken = require('../utils/facebookAPI/getIGToken.js');
+const helpers = require('../helpers/helpers');
 
 const saltRounds = 12;
 
@@ -40,6 +43,24 @@ router.get('/finduser/:id', (req, res) => {
         })
 });
 
+// To get user data after signup or login through facebook or google 
+router.get('/userByEmail/:email', (req, res) => {
+    db.User.findOne({
+        where: {
+            email: req.params.email
+            //UserId: req.session.user.UserId
+        }
+    })
+        .then(dbUser => {
+            console.log(`Match data for user: `, dbUser);
+            res.json(dbUser);
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).end();
+        })
+});
+
 //Return user and pet data by user id tested+
 router.get('/userpets/', (req, res) => {
     db.User.findOne({
@@ -65,7 +86,6 @@ router.get('/userpets/', (req, res) => {
 //tested +
 router.post('/', (req, res, next) => {
     bcrypt.hash(req.body.password, saltRounds, (error, hash) => {
-
         db.User.create({
             username: req.body.username,
             firstName: req.body.firstName,
@@ -78,8 +98,12 @@ router.post('/', (req, res, next) => {
             postcode: req.body.postcode,
             phoneNumber: req.body.phoneNumber,
             bio: req.body.bio,
-            tagline: req.body.tagline
-
+            tagline: req.body.tagline,
+            provider: 'manual',
+            is_manual: true,
+            latitude: req.body.latitude,
+            longitude: req.body.longitude,
+            maximumDistance: req.body.maximumDistance
         })
             .then(userData => {
                 res.json(userData);
@@ -92,40 +116,118 @@ router.post('/', (req, res, next) => {
             })
     })
 });
+
+//tested +
+router.put('/enableManualLogin', (req, res) => {
+
+    db.User.update({
+        is_manual: true,
+        password: bcrypt.hashSync(req.body.password, 10)
+    },
+        {
+            where: {
+                email: req.body.email
+            }
+        })
+        .then(dbUser => {
+            db.User.findOne({
+                where: {
+                    email: req.body.email
+                }
+            })
+                .then(userData => {
+                    helpers.sessionUpdate(req, userData).then(data => {
+                        req = data
+                        res.json({
+                            response_code: '1'
+                        })
+                    }).catch(err => {
+                        console.log(err);
+                        res.status(500).end();
+                    })
+                }).catch(err => {
+                    console.log(err);
+                    res.status(500).end();
+                })
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).end();
+        })
+});
+
+//tested +
+router.put('/disableManualLogin', (req, res) => {
+
+    db.User.update({
+        is_manual: false
+    },
+        {
+            where: {
+                email: req.body.email
+            }
+        })
+        .then(dbUser => {
+            db.User.findOne({
+                where: {
+                    email: req.body.email
+                }
+            })
+                .then(userData => {
+                    helpers.sessionUpdate(req, userData).then(data => {
+                        req = data
+                        res.json({
+                            response_code: '1'
+                        })
+                    }).catch(err => {
+                        console.log(err);
+                        res.status(500).end();
+                    })
+                }).catch(err => {
+                    console.log(err);
+                    res.status(500).end();
+                })
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).end();
+        })
+});
+
 router.post('/fbCreate', (req, res, next) => {
     // bcrypt.hash(req.body.password, saltRounds, (error, hash) => {
 
-        db.User.create({
+    db.User.create({
 
-            id: res.id,
-            displayName: res.displayName,
-            email: res.email,
-            name: res.name,
-            photos: res.photos
+        id: res.id,
+        displayName: res.displayName,
+        email: res.email,
+        name: res.name,
+        photos: res.photos
 
-            // username: req.body.username,
-            // firstName: req.body.firstName,
-            // lastName: req.body.lastName,
-            // email: req.body.email,
-            // gender: req.body.gender,
-            // password: hash,
-            // city: req.body.city,
-            // State: req.body.State,
-            // postcode: req.body.postcode,
-            // phoneNumber: req.body.phoneNumber,
-            // bio: req.body.bio,
-            // tagline: req.body.tagline
+        // username: req.body.username,
+        // firstName: req.body.firstName,
+        // lastName: req.body.lastName,
+        // email: req.body.email,
+        // gender: req.body.gender,
+        // password: hash,
+        // city: req.body.city,
+        // State: req.body.State,
+        // postcode: req.body.postcode,
+        // phoneNumber: req.body.phoneNumber,
+        // bio: req.body.bio,
+        // tagline: req.body.tagline
 
+    })
+        .then(userData => {
+            res.json(userData);
+            res.status(201);
         })
-            .then(userData => {
-                res.json(userData);
-                res.status(201);
-            })
-            .catch(error => {
-                console.log(error);
-                next(error);
-                res.status(500).end();
-            })
+        .catch(error => {
+            console.log(error);
+            next(error);
+            res.status(500).end();
+        })
     // })
 });
 
@@ -180,7 +282,12 @@ router.post('/login', (req, res) => {
                     phoneNumber: user.phoneNumber,
                     UserId: user.id,
                     bio: user.bio,
-                    tagline: user.tagline
+                    tagline: user.tagline,
+                    is_manual: user.is_manual,
+                    provider: user.provider,
+                    latitude: user.latitude,
+                    longitude: user.longitude,
+                    maximumDistance: user.maximumDistance
                     // token: access_token
                 }
                 // console.log("login sessions data: ", req.session, "user:", user);
@@ -213,7 +320,7 @@ router.post('/fbLogin', (req, res) => {
         } else {
             if (
                 // bcrypt.compareSync
-                    (res.email, user.email)) {
+                (res.email, user.email)) {
                 // const { data: { access_token } } = await getIGToken()
                 // user = {
                 req.session.user = {
@@ -291,7 +398,8 @@ router.put('/updateAll/', (req, res) => {
             postcode: req.body.postcode,
             phoneNumber: req.body.phoneNumber,
             bio: req.body.bio,
-            tagline: req.body.tagline
+            tagline: req.body.tagline,
+            maximumDistance: req.body.maximumDistance
         },
             {
                 where: {
@@ -312,6 +420,7 @@ router.put('/updateAll/', (req, res) => {
                 req.session.user.phoneNumber = req.body.phoneNumber
                 req.session.user.bio = req.body.bio
                 req.session.user.tagline = req.body.tagline
+                req.session.user.maximumDistance = req.body.maximumDistance
                 res.json(dbUser)
             })
             .catch(err => {
@@ -322,6 +431,133 @@ router.put('/updateAll/', (req, res) => {
 
     //TODO: update user bio only
     //TODO: update user password with password confirmation through email
+})
+
+//tested +
+router.put('/updateUser/', (req, res) => {
+    if (!req.session.user) {
+        res.status(403).end();
+    } else {
+
+        let result = {}
+
+        if (req.body.firstName) {
+            result.firstName = req.body.firstName
+        }
+        if (req.body.lastName) {
+            result.lastName = req.body.lastName
+        }
+        if (req.body.gender) { result.gender = req.body.gender }
+        if (req.body.emai) { result.email = req.body.emai }
+        if (req.body.city) { result.city = req.body.city }
+        if (req.body.State) { result.State = req.body.State }
+        if (req.body.postcode) { result.postcode = req.body.postcode }
+        if (req.body.phoneNumber) { result.phoneNumber = req.body.phoneNumber }
+        if (req.body.bio) { result.bio = req.body.bio }
+        if (req.body.tagline) { result.tagline = req.body.tagline }
+        if (req.body.latitude) { result.latitude = req.body.latitude }
+        if (req.body.longitude) { result.longitude = req.body.longitude }
+        if (req.body.maximumDistance) { result.maximumDistance = req.body.maximumDistance }
+        db.User.update(result,
+            {
+                where: {
+                    // id: req.params.id
+                    id: req.session.user.UserId
+                }
+            })
+            .then(dbUser => {
+                db.User.findOne({
+                    where: {
+                        id: req.session.user.UserId
+                    }
+                })
+                    .then(userData => {
+                        helpers.sessionUpdate(req, userData).then(data => {
+                            req = data
+                            res.json({
+                                response_code: '1',
+                                dbUser
+                            })
+                        }).catch(err => {
+                            console.log(err);
+                            res.status(500).end();
+                        })
+                    }).catch(err => {
+                        console.log(err);
+                        res.status(500).end();
+                    })
+            })
+            .catch(err => {
+                console.log(err);
+                res.status(500).end();
+            })
+    }
+})
+
+//tested +
+router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', (req, res) => {
+    const { page, size, latitude, longitude } = req.query;
+    let km = /* req.session.user.maximumDistance ? req.session.user.maximumDistance : */ 27
+    km = (km * 10 / 100) + km
+
+    const { limit, offset } = helpers.getPagination(page, size);
+
+    var attributes = ["id", "firstName", "lastName", "photo"]
+
+    var distance = db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))")
+    attributes.push([distance, 'distance']);
+
+    var query = {
+        attributes: attributes,
+        order: distance,
+        where: db.sequelize.where(distance, { [Op.lte]: km }),
+        limit,
+        offset
+    }
+
+    db.User.findAndCountAll(query)
+        .then(function (data) {
+            console.log(data);
+            data = helpers.getPagingData(data, page, limit);
+            res.json({
+                response_code: '1',
+                data: data.data,
+                totalItems: data.totalItems,
+                totalPages: data.totalPages,
+                currentPage: data.currentPage,
+                nextPage: data.nextPage,
+                previousPage: data.previousPage
+            });
+        }).catch(err => {
+            console.log(err);
+            res.status(500).end();
+        })
+})
+
+//tested +
+router.put('/updateUserLocation', (req, res) => {
+    let lat = req.body.latitude
+    let lng = req.body.longitude
+
+    db.User.update({
+        latitude: lat,
+        longitude: lng
+    },
+        {
+            where: {
+                email: req.session.user.email
+            }
+        })
+        .then(function (data) {
+            console.log(data);
+            res.json({
+                response_code: '1',
+                data
+            });
+        }).catch(err => {
+            console.log(err);
+            res.status(500).end();
+        })
 })
 
 module.exports = router;

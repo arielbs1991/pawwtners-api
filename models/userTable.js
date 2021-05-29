@@ -36,6 +36,11 @@ module.exports = function (sequelize, DataTypes) {
                 len: [6]
             }
         },
+        photo: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            notEmpty: false,
+        },
         email: {
             type: DataTypes.STRING,
             allowNull: false,
@@ -78,6 +83,32 @@ module.exports = function (sequelize, DataTypes) {
         },
         tagline: {
             type: DataTypes.STRING,
+            allowNull: true,
+            notEmpty: false
+        },
+        latitude: {
+            type: DataTypes.DOUBLE(),
+            allowNull: true,
+            notEmpty: false
+        },
+        longitude: {
+            type: DataTypes.DOUBLE(),
+            allowNull: true,
+            notEmpty: false
+        },
+        maximumDistance: {
+            type: DataTypes.DOUBLE(),
+            allowNull: true,
+            notEmpty: false,
+            defaultValue: 50
+        },
+        provider: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            notEmpty: false
+        },
+        is_manual: {
+            type: DataTypes.BOOLEAN,
             allowNull: true,
             notEmpty: false
         }

@@ -6,7 +6,7 @@ const db = require('../models');
 //route to pass map api key to front end
 router.get('/mapAPI', (req, res) => {
     // if (!req.session.user || !req.session.shelter) {
-    //     res.status(403).end();
+    // res.status(403).end();
     // } else {
     res.json(process.env.MAP_API);
     // }
@@ -17,8 +17,8 @@ router.post('/', (req, res) => {
     db.Match.create({
         isLiked: req.body.isLiked,
         matchedUserId: req.body.matchedUserId,
-        UserId: req.body.UserId
-        //UserId: req.session.user.UserId
+        // UserId: req.body.UserId
+        UserId: req.session.user.UserId
     })
         .then(dbMatch => {
             res.json(dbMatch);
@@ -40,6 +40,26 @@ router.get('/all/', (req, res) => {
             console.log(err);
             res.status(500).end();
         })
+})
+
+router.get('/getMatchByUserId?:latitude?:longitude', (req, res) => {
+
+    let latitude = req.query.latitude
+    let longitude = req.query.longitude
+    db.Match.findAll({
+        where: {
+            matchedUserId: req.session.user.UserId
+        },
+        include: {
+            model: db.User, attributes: ["firstName", "lastName", "photo", [db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']]
+        },
+        order: [[db.sequelize.literal(`"User.distance"`), 'ASC']]
+    }).then(user => {
+        res.json(user)
+    }).catch(err => {
+        console.log(err)
+        res.status(500).end();
+    })
 })
 
 //find all matches by user id (TODO: change to use sessions data) tested+
@@ -96,5 +116,7 @@ router.delete('/block/:id', (req, res) => {
             res.status(500).end();
         })
 });
+
+
 
 module.exports = router;

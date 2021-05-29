@@ -11,7 +11,7 @@ const passport = require('passport');
 const FacebookStrategy = require('passport-facebook').Strategy;
 const InstagramStrategy = require('passport-instagram').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-
+const helpers = require('./helpers/helpers')
 var PORT = process.env.PORT || 3001;
 // const sendSMS = require('./utils/twilioAPI/sendSMS');
 
@@ -67,6 +67,34 @@ passport.use(new FacebookStrategy({
   passReqToCallback: true,
 },
   function (req, accessToken, refreshToken, profile, cb) {
+    db.User.findOne({
+      where: {
+        email: profile._json.email
+      }
+    })
+      .then(dbUser => {
+        if (!dbUser) {
+          let data = {
+            email: profile._json.email,
+            photos: profile._json.picture.data.url,
+            firstName: profile._json.first_name,
+            lastName: profile._json.last_name,
+            provider: profile.provider,
+            is_manual: false
+          }
+          db.User.create(data)
+            .then(userData => {
+              console.log(userData);
+            })
+            .catch(error => {
+              console.log(error);
+            })
+        }
+        console.log("User Pets: ", dbUser);
+      })
+      .catch(err => {
+        console.log(err);
+      })
     // save the profile on the Database
     // save the accessToken and refreshToken if you need to call facebook apis later on
     return cb(null, profile);
@@ -96,6 +124,38 @@ passport.use(new GoogleStrategy({
   passReqToCallback: true,
 },
   function (req, accessToken, refreshToken, profile, cb) {
+    console.log(profile)
+    db.User.findOne({
+      where: {
+        email: profile._json.email
+      }
+    })
+      .then(dbUser => {
+        if (!dbUser) {
+          let data = {
+            email: profile._json.email,
+            photos: profile._json.picture,
+            firstName: profile._json.family_name,
+            lastName: profile._json.given_name,
+            provider: profile.provider,
+            is_manual: false
+          }
+
+          db.User.create(data)
+            .then(userData => {
+              console.log(userData);
+            })
+            .catch(error => {
+              console.log(error);
+            })
+        }
+
+        console.log("User Pets: ", dbUser);
+      })
+      .catch(err => {
+        console.log(err);
+      })
+
     return cb(null, profile);
   }
 ));
@@ -117,8 +177,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
-app.get('/facebook/callback', passport.authenticate('facebook', { failureRedirect: `${process.env.FRONTEND_HOST}/error` }), function (req, res) {
-  res.redirect(`${process.env.FRONTEND_HOST}/facebook/success`);
+app.get('/facebook/callback', passport.authenticate('facebook', { failureRedirect: `${process.env.FRONTEND_HOST}/error` }), async function (req, res) {
+  let data = await db.User.findOne({
+    where: {
+      email: req.session.passport.user._json.email
+    }
+  })
+  req = await helpers.sessionUpdate(req, data)
+  res.redirect(`${process.env.FRONTEND_HOST}/swipe`);
 });
 
 app.get('/instagram', passport.authenticate('instagram', { scope: ['user_profile', 'user_media'] }));
@@ -127,8 +193,15 @@ app.get('/instagram/callback', passport.authenticate('instagram', { failureRedir
 });
 
 app.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-app.get('/google/callback', passport.authenticate('google', { failureRedirect: `${process.env.FRONTEND_HOST}/error` }), function (req, res) {
-  res.redirect(`${process.env.FRONTEND_HOST}/google/success`);
+app.get('/google/callback', passport.authenticate('google', { failureRedirect: `${process.env.FRONTEND_HOST}/error` }), async function (req, res) {
+  let data = await db.User.findOne({
+    where: {
+      email: req.session.passport.user._json.email
+    }
+  })
+  req = await helpers.sessionUpdate(req, data)
+
+  res.redirect(`${process.env.FRONTEND_HOST}/swipe`);
 });
 
 app.get('/profile',
@@ -144,6 +217,8 @@ const matchController = require("./controllers/matchController.js");
 app.use("/api/match", matchController);
 const petController = require("./controllers/petController.js");
 app.use("/api/pets", petController);
+const likeController = require("./controllers/likeController.js");
+app.use("/api/like", likeController);
 // const { use } = require("./controllers/userController.js");
 
 //TODO: once our db is where we want it, change to force:false

@@ -1,20 +1,17 @@
 {
-    "development": {
-      "username": "root",
-      "password": "password",
-      "database": "lxodbcdsn",
-      "port": 1522,
-      "host": "3d318f88f00520e9c6c9.lxc-db.com",
-      "dialect": "lxdb",
-      "UseTZ": "America/Los_Angeles" 
-    },
-    "test": {
-      "use_env_variable":"JAWSDB_URL",
-      "dialect": "lxdb"
-    },
-    "production": {
-      "use_env_variable":"JAWSDB_URL",
-      "dialect": "lxdb"
-    }
+  "development": {
+    "username": "postgres",
+    "password": "root",
+    "database": "lxodcdsntest",
+    "host": "161.35.123.43",
+    "dialect": "postgres"
+  },
+  "test": {
+    "use_env_variable": "JAWSDB_URL",
+    "dialect": "postgres"
+  },
+  "production": {
+    "use_env_variable": "JAWSDB_URL",
+    "dialect": "lxdb"
   }
-  
+}
