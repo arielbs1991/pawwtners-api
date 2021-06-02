@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const authorize = require('../middlewares/authorize');
 const db = require('../models');
 
 //BASE URL FOR ALL ROUTES ON THIS PAGE: /api/match
@@ -42,13 +43,13 @@ router.get('/all/', (req, res) => {
         })
 })
 
-router.get('/getMatchByUserId?:latitude?:longitude', (req, res) => {
+router.get('/getMatchByUserId?:latitude?:longitude', /* authorize(), */(req, res) => {
 
     let latitude = req.query.latitude
     let longitude = req.query.longitude
     db.Match.findAll({
         where: {
-            matchedUserId: req.session.user.UserId
+            matchedUserId: /* req.userDetails.UserId */1
         },
         include: {
             model: db.User, attributes: ["firstName", "lastName", "photo", [db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']]
@@ -56,6 +57,32 @@ router.get('/getMatchByUserId?:latitude?:longitude', (req, res) => {
         order: [[db.sequelize.literal(`"User.distance"`), 'ASC']]
     }).then(user => {
         res.json(user)
+    }).catch(err => {
+        console.log(err)
+        res.status(500).end();
+    })
+})
+
+router.get('/getAllMatchedUser', (req, res) => {
+
+    let matchUserList = [];
+
+    db.Match.findAll({
+        where: {
+            matchedUserId: req.session.user.UserId
+        },
+        include: {
+            model: db.User, attributes: ["firstName", "lastName", "photo"]
+        }
+    }).then(data => {
+
+        for (let row of data) {
+            matchUserList.push({
+                id: row.UserId,
+                name: row.User.firstName + " " + row.User.lastName
+            })
+        }
+        res.json(matchUserList)
     }).catch(err => {
         console.log(err)
         res.status(500).end();

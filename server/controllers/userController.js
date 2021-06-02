@@ -3,8 +3,9 @@ const db = require("../models");
 const sequelize = require('../models')
 const Op = sequelize.Sequelize.Op;
 const bcrypt = require("bcrypt");
-const getIGToken = require('../utils/facebookAPI/getIGToken.js');
+const getIGToken = require('../../utils/facebookAPI/getIGToken.js');
 const helpers = require('../helpers/helpers');
+const authorize = require("../middlewares/authorize");
 
 const saltRounds = 12;
 
@@ -28,7 +29,7 @@ router.get('/userlist/', (req, res) => {
 });
 
 //tested +
-router.get('/finduser/:id', (req, res) => {
+router.get('/finduser/:id', authorize(), (req, res) => {
     db.User.findOne({
         where: {
             id: req.params.id
@@ -44,7 +45,7 @@ router.get('/finduser/:id', (req, res) => {
 });
 
 // To get user data after signup or login through facebook or google 
-router.get('/userByEmail/:email', (req, res) => {
+router.get('/userByEmail/:email', authorize(), (req, res) => {
     db.User.findOne({
         where: {
             email: req.params.email
@@ -62,7 +63,7 @@ router.get('/userByEmail/:email', (req, res) => {
 });
 
 //Return user and pet data by user id tested+
-router.get('/userpets/', (req, res) => {
+router.get('/userpets/', authorize(), (req, res) => {
     db.User.findOne({
         where: {
             id: req.body.id
@@ -118,7 +119,7 @@ router.post('/', (req, res, next) => {
 });
 
 //tested +
-router.put('/enableManualLogin', (req, res) => {
+router.put('/enableManualLogin', authorize(), (req, res) => {
 
     db.User.update({
         is_manual: true,
@@ -135,15 +136,10 @@ router.put('/enableManualLogin', (req, res) => {
                     email: req.body.email
                 }
             })
-                .then(userData => {
-                    helpers.sessionUpdate(req, userData).then(data => {
-                        req = data
-                        res.json({
-                            response_code: '1'
-                        })
-                    }).catch(err => {
-                        console.log(err);
-                        res.status(500).end();
+                .then(async userData => {
+                    req = await helpers.sessionUpdate(req, userData)
+                    res.json({
+                        response_code: '1'
                     })
                 }).catch(err => {
                     console.log(err);
@@ -157,7 +153,7 @@ router.put('/enableManualLogin', (req, res) => {
 });
 
 //tested +
-router.put('/disableManualLogin', (req, res) => {
+router.put('/disableManualLogin', authorize(), (req, res) => {
 
     db.User.update({
         is_manual: false
@@ -173,15 +169,10 @@ router.put('/disableManualLogin', (req, res) => {
                     email: req.body.email
                 }
             })
-                .then(userData => {
-                    helpers.sessionUpdate(req, userData).then(data => {
-                        req = data
-                        res.json({
-                            response_code: '1'
-                        })
-                    }).catch(err => {
-                        console.log(err);
-                        res.status(500).end();
+                .then(async userData => {
+                    req = await helpers.sessionUpdate(req, userData)
+                    res.json({
+                        response_code: '1'
                     })
                 }).catch(err => {
                     console.log(err);
@@ -252,6 +243,24 @@ router.get("/logout", (req, res) => {
     // }
 })
 
+router.get("/userDataByToken", authorize(), (req, res) => {
+    db.User.findOne({
+        where: {
+            id: req.userDetails.UserId
+        }
+    }).then(async user => {
+        if (!user) {
+            res.status(404).send("No such user exists");
+        } else {
+            res.json(user);
+        }
+    }).catch(err => {
+        console.log(err);
+        res.status(500).end()
+    })
+})
+
+
 router.post('/login', (req, res) => {
 
     // const user = req.session.user;
@@ -270,17 +279,16 @@ router.post('/login', (req, res) => {
                 // const { data: { access_token } } = await getIGToken()
                 // user = {
                 req.session.user = {
+                    UserId: user.id,
                     username: user.username,
                     firstName: user.firstName,
                     lastName: user.lastName,
                     gender: user.gender,
                     email: user.email,
-                    password: user.password,
                     city: user.city,
                     State: user.State,
                     postcode: user.postcode,
                     phoneNumber: user.phoneNumber,
-                    UserId: user.id,
                     bio: user.bio,
                     tagline: user.tagline,
                     is_manual: user.is_manual,
@@ -290,11 +298,35 @@ router.post('/login', (req, res) => {
                     maximumDistance: user.maximumDistance
                     // token: access_token
                 }
+
+                let token = helpers.generateUserToken(
+                    user.id,
+                    user.username,
+                    user.firstName,
+                    user.lastName,
+                    user.gender,
+                    user.email,
+                    user.city,
+                    user.State,
+                    user.postcode,
+                    user.phoneNumber,
+                    user.is_manual,
+                    user.provider,
+                    user.latitude,
+                    user.longitude,
+                    user.maximumDistance
+                    //  access_token
+                )
                 // console.log("login sessions data: ", req.session, "user:", user);
                 console.log("login sessions data: ", req.session);
                 // sessionStorage.setItem("user", JSON.stringify(user));
                 console.log("user: ", user);
-                res.json(user);
+                let result =
+                {
+                    token: token,
+                    user: user
+                }
+                res.json(result);
                 // res.json(req.session);
             } else {
                 res.status(401).send("Incorrect password")
@@ -382,8 +414,8 @@ router.delete('/', (req, res) => {
 });
 
 //tested, getting 500 error, but it's working when you pull the user data up...
-router.put('/updateAll/', (req, res) => {
-    if (!req.session.user) {
+router.put('/updateAll/', authorize(), (req, res) => {
+    if (!req.userDetails) {
         res.status(403).end();
     } else {
         db.User.update({
@@ -404,7 +436,7 @@ router.put('/updateAll/', (req, res) => {
             {
                 where: {
                     // id: req.params.id
-                    id: req.session.user.UserId
+                    id: req.userDetails.UserId
                 }
             })
             .then(dbUser => {
@@ -434,8 +466,8 @@ router.put('/updateAll/', (req, res) => {
 })
 
 //tested +
-router.put('/updateUser/', (req, res) => {
-    if (!req.session.user) {
+router.put('/updateUser/', authorize(), (req, res) => {
+    if (!req.userDetails.UserId) {
         res.status(403).end();
     } else {
 
@@ -462,25 +494,20 @@ router.put('/updateUser/', (req, res) => {
             {
                 where: {
                     // id: req.params.id
-                    id: req.session.user.UserId
+                    id: req.userDetails.UserId
                 }
             })
             .then(dbUser => {
                 db.User.findOne({
                     where: {
-                        id: req.session.user.UserId
+                        id: req.userDetails.UserId
                     }
                 })
-                    .then(userData => {
-                        helpers.sessionUpdate(req, userData).then(data => {
-                            req = data
-                            res.json({
-                                response_code: '1',
-                                dbUser
-                            })
-                        }).catch(err => {
-                            console.log(err);
-                            res.status(500).end();
+                    .then(async userData => {
+                        req = await helpers.sessionUpdate(req, userData)
+                        res.json({
+                            response_code: '1',
+                            dbUser
                         })
                     }).catch(err => {
                         console.log(err);
@@ -495,9 +522,9 @@ router.put('/updateUser/', (req, res) => {
 })
 
 //tested +
-router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', (req, res) => {
+router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', /* authorize(), */(req, res) => {
     const { page, size, latitude, longitude } = req.query;
-    let km = /* req.session.user.maximumDistance ? req.session.user.maximumDistance : */ 27
+    let km = /* req.userDetails.maximumDistance ? req.userDetails.maximumDistance : */ 27
     km = (km * 10 / 100) + km
 
     const { limit, offset } = helpers.getPagination(page, size);
@@ -510,7 +537,7 @@ router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', (req, res
     var query = {
         attributes: attributes,
         order: distance,
-        where: db.sequelize.where(distance, { [Op.lte]: km }),
+        where: db.sequelize.where([distance, { [Op.lte]: km }]),
         limit,
         offset
     }
@@ -521,7 +548,7 @@ router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', (req, res
             data = helpers.getPagingData(data, page, limit);
             res.json({
                 response_code: '1',
-                data: data.data,
+                data: data,
                 totalItems: data.totalItems,
                 totalPages: data.totalPages,
                 currentPage: data.currentPage,
@@ -535,7 +562,7 @@ router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', (req, res
 })
 
 //tested +
-router.put('/updateUserLocation', (req, res) => {
+router.put('/updateUserLocation', authorize(), (req, res) => {
     let lat = req.body.latitude
     let lng = req.body.longitude
 
@@ -545,7 +572,7 @@ router.put('/updateUserLocation', (req, res) => {
     },
         {
             where: {
-                email: req.session.user.email
+                email: req.userDetails.email
             }
         })
         .then(function (data) {
@@ -558,6 +585,42 @@ router.put('/updateUserLocation', (req, res) => {
             console.log(err);
             res.status(500).end();
         })
+})
+
+router.get('/search-users', authorize(), async (req, res) => {
+    try {
+        const users = await db.User.findAll({
+            where: {
+                // by using sequelize Op or we can search the user by first name, last name and email
+                [Op.or]: {
+                    // namesConcated will join first and last name for eg if someone's first and last name is 'Animish' and 'Sharma' it will concat it as 'Animish Sharma'
+                    namesConcated: db.sequelize.where(
+                        // sequelize fn means function concat and sequelize col means column in database
+                        db.sequelize.fn('concat', db.sequelize.col('firstName'), ' ', db.sequelize.col('lastName')),
+                        {
+                            // in these brackets operators will perform to find user
+                            // sequelize.Op.iLike is the function which does not care for upper aur lowercase for iLike animish = Animish = ANIMISH
+                            [Op.iLike]: `%${req.query.term}%`
+                        }
+                    ),
+                    email: {
+                        // there are % beacuse it will be a get request and data will be in url surrounded with %
+                        [Op.iLike]: `%${req.query.term}%`
+                    }
+                },
+                [Op.not]: {
+                    // OP not is used to exclude us (user who is sending search requests)
+                    id: `${req.userDetails.UserId}`
+                }
+            },
+            limit: 10
+        })
+
+        return res.status(200).json(users)
+
+    } catch (e) {
+        return res.status(500).json({ error: e.message });
+    }
 })
 
 module.exports = router;

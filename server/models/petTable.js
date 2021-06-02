@@ -1,5 +1,3 @@
-const Sequelize = require("sequelize-lx-win");
-const sequelize = require("./index");
 
 //add constraints and validators later
 module.exports = function (sequelize, DataTypes) {

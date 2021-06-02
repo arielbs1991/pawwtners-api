@@ -1,4 +1,11 @@
 "use Strict"
+
+/* eslint-disable camelcase */
+const jwt = require('jsonwebtoken')
+const env = process.env.NODE_ENV || 'development';
+const { jwt_secret, jwt_issuer } = require('../config/config.json')[env];
+
+
 /**
  * Function to Update Data In session on user data update
  * @param {object} req 
@@ -91,8 +98,23 @@ const getPagingData = (dbdata, page, limit) => {
 };
 
 
-module.exports = {
+/**
+   * Generate Token
+   * @param {string} id
+   * @returns {string} token
+   */
+const generateUserToken = (UserId, firstName, lastName, gender, email, city_id, state_id, postcode, phoneNumber, is_manual, provider, latitude, longitude, maximumDistance) => {
+    const token = jwt.sign({ UserId, firstName, lastName, gender, email, city_id, state_id, postcode, phoneNumber, is_manual, provider, latitude, longitude, maximumDistance },
+        jwt_secret, { expiresIn: 60 * 60 * 24, issuer: jwt_issuer },
+    );
+    return token;
+};
+
+let validations = {
+    generateUserToken,
     sessionUpdate,
     getPagination,
     getPagingData
 }
+
+module.exports = validations;

@@ -1,6 +1,4 @@
-const Sequelize = require("sequelize-lx-win");
-const sequelize = require("./index");
-const bcrypt = require("bcrypt");
+
 
 module.exports = function (sequelize, DataTypes) {
     var User = sequelize.define("User", {

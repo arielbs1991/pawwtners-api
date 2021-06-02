@@ -1,6 +1,4 @@
-const Sequelize = require("sequelize-lx-win");
-const sequelize = require("./index");
-const db = require('../models/index')
+
 module.exports = function (sequelize, DataTypes) {
     var Like = sequelize.define("Like", {
         isLiked: {

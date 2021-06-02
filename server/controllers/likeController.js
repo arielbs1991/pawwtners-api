@@ -1,16 +1,17 @@
 const router = require('express').Router();
+const authorize = require('../middlewares/authorize');
 const db = require('../models');
 
 // BASE URL FOR ALL ROUTES ON THIS PAGE: /api/like /
 
 //tested+
-router.post('/', async (req, res) => {
+router.post('/', authorize(), async (req, res) => {
     try {
 
         let dblike = await db.Like.findOne({
             where: {
                 likedUserId: req.body.likedUserId,
-                UserId: req.session.user.UserId
+                UserId: req.userDetails.UserId
             }
         })
 
@@ -19,14 +20,14 @@ router.post('/', async (req, res) => {
             await db.Like.create({
                 isLiked: req.body.isLiked,
                 likedUserId: req.body.likedUserId,
-                UserId: req.session.user.UserId
+                UserId: req.userDetails.UserId
             })
 
             if (req.body.isLiked == true) {
                 let userLike = await db.Like.findOne({
                     where: {
                         isLiked: true,
-                        likedUserId: req.session.user.UserId,
+                        likedUserId: req.userDetails.UserId,
                         UserId: req.body.likedUserId
                     }
                 })
@@ -34,7 +35,7 @@ router.post('/', async (req, res) => {
                     let match = await db.Match.findOne({
                         where: {
                             isLiked: true,
-                            matchedUserId: req.session.user.UserId,
+                            matchedUserId: req.userDetails.UserId,
                             UserId: req.body.likedUserId
                         }
                     })
@@ -42,20 +43,20 @@ router.post('/', async (req, res) => {
                         where: {
                             isLiked: true,
                             matchedUserId: req.body.likedUserId,
-                            UserId: req.session.user.UserId
+                            UserId: req.userDetails.UserId
                         }
                     })
                     if (!match && !match1) {
                         await db.Match.create({
                             isLiked: true,
                             matchedUserId: req.body.likedUserId,
-                            UserId: req.session.user.UserId
+                            UserId: req.userDetails.UserId
 
                         })
 
                         await db.Match.create({
                             isLiked: true,
-                            matchedUserId: req.session.user.UserId,
+                            matchedUserId: req.userDetails.UserId,
                             UserId: req.body.likedUserId
                         })
                     }
@@ -68,10 +69,10 @@ router.post('/', async (req, res) => {
             await db.Like.update({
                 isLiked: req.body.isLiked,
                 likedUserId: req.body.likedUserId,
-                UserId: req.session.user.UserId
+                UserId: req.userDetails.UserId
             }, {
                 where: {
-                    likedUserId: req.body.likedUserId, UserId: req.session.user.UserId
+                    likedUserId: req.body.likedUserId, UserId: req.userDetails.UserId
                 }
             })
 
@@ -79,7 +80,7 @@ router.post('/', async (req, res) => {
                 let userLike = await db.Like.findOne({
                     where: {
                         isLiked: true,
-                        likedUserId: req.session.user.UserId,
+                        likedUserId: req.userDetails.UserId,
                         UserId: req.body.likedUserId
                     }
                 })
@@ -87,7 +88,7 @@ router.post('/', async (req, res) => {
                     let match = await db.Match.findOne({
                         where: {
                             isLiked: true,
-                            matchedUserId: req.session.user.UserId,
+                            matchedUserId: req.userDetails.UserId,
                             UserId: req.body.likedUserId
                         }
                     })
@@ -95,20 +96,20 @@ router.post('/', async (req, res) => {
                         where: {
                             isLiked: true,
                             matchedUserId: req.body.likedUserId,
-                            UserId: req.session.user.UserId
+                            UserId: req.userDetails.UserId
                         }
                     })
                     if (!match && !match1) {
                         await db.Match.create({
                             isLiked: true,
                             matchedUserId: req.body.likedUserId,
-                            UserId: req.session.user.UserId
+                            UserId: req.userDetails.UserId
 
                         })
 
                         await db.Match.create({
                             isLiked: true,
-                            matchedUserId: req.session.user.UserId,
+                            matchedUserId: req.userDetails.UserId,
                             UserId: req.body.likedUserId
                         })
                     }
@@ -120,7 +121,7 @@ router.post('/', async (req, res) => {
                 let match = await db.Match.findOne({
                     where: {
                         isLiked: true,
-                        matchedUserId: req.session.user.UserId,
+                        matchedUserId: req.userDetails.UserId,
                         UserId: req.body.likedUserId
                     }
                 })
@@ -129,7 +130,7 @@ router.post('/', async (req, res) => {
                         where: {
                             isLiked: true,
                             matchedUserId: req.body.likedUserId,
-                            UserId: req.session.user.UserId
+                            UserId: req.userDetails.UserId
                         }
                     })
                     if (match && match1) {
@@ -137,14 +138,14 @@ router.post('/', async (req, res) => {
                             where: {
                                 isLiked: true,
                                 matchedUserId: req.body.likedUserId,
-                                UserId: req.session.user.UserId
+                                UserId: req.userDetails.UserId
                             }
 
                         })
                         await db.Match.destroy({
                             where: {
                                 isLiked: true,
-                                matchedUserId: req.session.user.UserId,
+                                matchedUserId: req.userDetails.UserId,
                                 UserId: req.body.likedUserId
                             }
                         })

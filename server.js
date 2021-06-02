@@ -2,7 +2,7 @@ require('dotenv').config(); //added for mail
 
 const express = require("express");
 const app = express();
-const db = require("./models");
+const db = require("./server/models");
 const session = require('express-session')
 const morgan = require("morgan"); //added for mail
 const nodemailer = require("nodemailer"); //added for mail
@@ -11,8 +11,16 @@ const passport = require('passport');
 const FacebookStrategy = require('passport-facebook').Strategy;
 const InstagramStrategy = require('passport-instagram').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const helpers = require('./helpers/helpers')
+const helpers = require('./server/helpers/helpers')
 var PORT = process.env.PORT || 3001;
+
+var server = require("http").Server(app);
+const io = require("socket.io")(server, {
+  cors: {
+    origin: '*',
+  }
+});
+
 // const sendSMS = require('./utils/twilioAPI/sendSMS');
 
 app.use(express.urlencoded({ extended: true }));
@@ -31,10 +39,15 @@ app.use(session({
 app.use(morgan('dev')) //added for mail
 
 // TODO:change to front-end deployed link when front end is deployed
-app.use(cors({
-  origin: ["http://localhost:3000"],
-  credentials: true
-}))
+// app.use(cors({
+//   origin: ["http://localhost:3000", "http://localhost:4000"],
+//   credentials: true
+// }))
+app.use(cors())
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+});
 
 // TODO: modify front end link when deployed
 // app.use(cors({
@@ -183,8 +196,11 @@ app.get('/facebook/callback', passport.authenticate('facebook', { failureRedirec
       email: req.session.passport.user._json.email
     }
   })
+  //  access_token
+  let token = await helpers.generateUserToken(data.id, data.username, data.firstName, data.lastName, data.gender, data.email, data.city, data.State, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
+
   req = await helpers.sessionUpdate(req, data)
-  res.redirect(`${process.env.FRONTEND_HOST}/swipe`);
+  res.redirect(`${process.env.FRONTEND_HOST}/swipe?${token}`);
 });
 
 app.get('/instagram', passport.authenticate('instagram', { scope: ['user_profile', 'user_media'] }));
@@ -199,9 +215,11 @@ app.get('/google/callback', passport.authenticate('google', { failureRedirect: `
       email: req.session.passport.user._json.email
     }
   })
+  //  access_token
+  let token = await helpers.generateUserToken(data.id, data.username, data.firstName, data.lastName, data.gender, data.email, data.city, data.State, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
   req = await helpers.sessionUpdate(req, data)
 
-  res.redirect(`${process.env.FRONTEND_HOST}/swipe`);
+  res.redirect(`${process.env.FRONTEND_HOST}/swipe?${token}`);
 });
 
 app.get('/profile',
@@ -211,19 +229,73 @@ app.get('/profile',
   });
 
 
-const userController = require("./controllers/userController.js");
+const userController = require("./server/controllers/userController.js");
 app.use("/api/user", userController);
-const matchController = require("./controllers/matchController.js");
+const matchController = require("./server/controllers/matchController.js");
 app.use("/api/match", matchController);
-const petController = require("./controllers/petController.js");
+const petController = require("./server/controllers/petController.js");
 app.use("/api/pets", petController);
-const likeController = require("./controllers/likeController.js");
+const likeController = require("./server/controllers/likeController.js");
 app.use("/api/like", likeController);
 // const { use } = require("./controllers/userController.js");
 
+
+/**
+* Socket code
+*/
+
+var clients = {};
+
+io.on("connection", function (client) {
+  client.on("sign-in", e => {
+
+    let user_id = e.id;
+    if (!user_id) return;
+    client.user_id = user_id;
+    if (clients[user_id]) {
+      clients[user_id].push(client);
+    } else {
+      clients[user_id] = [client];
+    }
+  });
+
+  client.on("message", e => {
+    let targetId = e.to;
+    let sourceId = client.user_id;
+    if (targetId && clients[targetId]) {
+      clients[targetId].forEach(cli => {
+        cli.emit("message", e);
+      });
+    }
+
+    if (sourceId && clients[sourceId]) {
+      clients[sourceId].forEach(cli => {
+        cli.emit("message", e);
+      });
+    }
+  });
+
+  client.on("disconnect", function () {
+    if (!client.user_id || !clients[client.user_id]) {
+      return;
+    }
+    let targetClients = clients[client.user_id];
+    for (let i = 0; i < targetClients.length; ++i) {
+      if (targetClients[i] == client) {
+        targetClients.splice(i, 1);
+      }
+    }
+  });
+});
+
+
+/**
+* Socket complete
+*/
+
 //TODO: once our db is where we want it, change to force:false
 db.sequelize.sync({ force: false }).then(function () {
-  app.listen(PORT, function () {
+  server.listen(PORT, function () {
     console.log("listen to me, heroku. Changes have been made, I swear");
     console.log("App listening on PORT " + PORT);
     //testing sms

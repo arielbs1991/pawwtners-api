@@ -2,9 +2,11 @@
   "development": {
     "username": "postgres",
     "password": "root",
-    "database": "lxodcdsntest",
+    "database": "lxodbcdsn",
     "host": "161.35.123.43",
-    "dialect": "postgres"
+    "dialect": "postgres",
+    "jwt_issuer": "pawwtners",
+    "jwt_secret":"ILoVePaWWtNeRs"
   },
   "test": {
     "use_env_variable": "JAWSDB_URL",
