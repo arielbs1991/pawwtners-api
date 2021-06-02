@@ -5,7 +5,7 @@ const db = require('../models');
 
 //BASE URL FOR ALL ROUTES ON THIS PAGE: /api/message
 
-router.get('/:?page:?limit', authorize(), async (req, res) => {
+router.get('/:?page:?limit:?id', authorize(), async (req, res) => {
     const { page, size } = req.query;
     const { limit, offset } = helpers.getPagination(page, size);
 
@@ -13,7 +13,8 @@ router.get('/:?page:?limit', authorize(), async (req, res) => {
     try {
         const messages = await db.Message.findAndCountAll({
             where: {
-                from: req.userDetails.UserId
+                from: req.userDetails.UserId,
+                to: req.query.to
             },
             limit,
             offset,

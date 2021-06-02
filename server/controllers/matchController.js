@@ -14,12 +14,12 @@ router.get('/mapAPI', (req, res) => {
 })
 
 //create a new match tested+
-router.post('/', (req, res) => {
+router.post('/', authorize(), (req, res) => {
     db.Match.create({
         isLiked: req.body.isLiked,
         matchedUserId: req.body.matchedUserId,
         // UserId: req.body.UserId
-        UserId: req.session.user.UserId
+        UserId: req.userDetails.UserId
     })
         .then(dbMatch => {
             res.json(dbMatch);
@@ -43,16 +43,16 @@ router.get('/all/', (req, res) => {
         })
 })
 
-router.get('/getMatchByUserId?:latitude?:longitude', /* authorize(), */(req, res) => {
+router.get('/getMatchByUserId?:latitude?:longitude', authorize(), (req, res) => {
 
     let latitude = req.query.latitude
     let longitude = req.query.longitude
     db.Match.findAll({
         where: {
-            matchedUserId: /* req.userDetails.UserId */1
+            matchedUserId: req.userDetails.UserId
         },
         include: {
-            model: db.User, attributes: ["firstName", "lastName", "photo", [db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']]
+            model: db.User, attributes: ["firstName", "lastName", "photo", [db.sequelize.literal("6371 acos(cos(radians(" + latitude + ")) cos(radians(latitude)) cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) sin(radians(latitude)))"), 'distance']]
         },
         order: [[db.sequelize.literal(`"User.distance"`), 'ASC']]
     }).then(user => {
@@ -63,13 +63,13 @@ router.get('/getMatchByUserId?:latitude?:longitude', /* authorize(), */(req, res
     })
 })
 
-router.get('/getAllMatchedUser', (req, res) => {
+router.get('/getAllMatchedUser', authorize(), (req, res) => {
 
     let matchUserList = [];
 
     db.Match.findAll({
         where: {
-            matchedUserId: req.session.user.UserId
+            matchedUserId: req.userDetails.UserId
         },
         include: {
             model: db.User, attributes: ["firstName", "lastName", "photo"]

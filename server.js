@@ -40,8 +40,8 @@ app.use(morgan('dev')) //added for mail
 
 // TODO:change to front-end deployed link when front end is deployed
 // app.use(cors({
-//   origin: ["http://localhost:3000", "http://localhost:4000"],
-//   credentials: true
+// origin: ["http://localhost:3000", "http://localhost:4000"],
+// credentials: true
 // }))
 app.use(cors())
 app.use((req, res, next) => {
@@ -51,21 +51,21 @@ app.use((req, res, next) => {
 
 // TODO: modify front end link when deployed
 // app.use(cors({
-//   origin: ["https://pawwtners.com"],
-//   credentials: true
+// origin: ["https://pawwtners.com"],
+// credentials: true
 // }))
 
 // USE ON DEPLOYED
 // app.use(session({
-//   secret: process.env.SESSION_SECRET,
-//   resave: false,
-//   saveUninitialized: false,
-//   proxy: true,
-//   cookie: {
-//     maxAge: 2 * 60 * 60 * 1000,
-//     sameSite: "none",
-//     secure: true
-//   }
+// secret: process.env.SESSION_SECRET,
+// resave: false,
+// saveUninitialized: false,
+// proxy: true,
+// cookie: {
+// maxAge: 2 60 60 * 1000,
+// sameSite: "none",
+// secure: true
+// }
 // }))
 
 app.get("/", (req, res) => {
@@ -196,7 +196,7 @@ app.get('/facebook/callback', passport.authenticate('facebook', { failureRedirec
       email: req.session.passport.user._json.email
     }
   })
-  //  access_token
+  // access_token
   let token = await helpers.generateUserToken(data.id, data.username, data.firstName, data.lastName, data.gender, data.email, data.city, data.State, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
 
   req = await helpers.sessionUpdate(req, data)
@@ -215,7 +215,7 @@ app.get('/google/callback', passport.authenticate('google', { failureRedirect: `
       email: req.session.passport.user._json.email
     }
   })
-  //  access_token
+  // access_token
   let token = await helpers.generateUserToken(data.id, data.username, data.firstName, data.lastName, data.gender, data.email, data.city, data.State, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
   req = await helpers.sessionUpdate(req, data)
 
@@ -259,17 +259,25 @@ io.on("connection", function (client) {
     }
   });
 
-  client.on("message", e => {
+  client.on("message", async e => {
     let targetId = e.to;
     let sourceId = client.user_id;
     if (targetId && clients[targetId]) {
+      debugger
       clients[targetId].forEach(cli => {
         cli.emit("message", e);
       });
     }
 
     if (sourceId && clients[sourceId]) {
-      clients[sourceId].forEach(cli => {
+      clients[sourceId].forEach(async cli => {
+        db.Message.create({ to: e.to, from: e.from, date: e.message.date, text: e.message.text, unread: null })
+          .then(data => {
+            console.log(data)
+          })
+          .catch((error) => {
+            console.log(error)
+          })
         cli.emit("message", e);
       });
     }

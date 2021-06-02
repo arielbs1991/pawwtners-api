@@ -522,7 +522,7 @@ router.put('/updateUser/', authorize(), (req, res) => {
 })
 
 //tested +
-router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', /* authorize(), */(req, res) => {
+router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', authorize(),(req, res) => {
     const { page, size, latitude, longitude } = req.query;
     let km = /* req.userDetails.maximumDistance ? req.userDetails.maximumDistance : */ 27
     km = (km * 10 / 100) + km
@@ -537,7 +537,7 @@ router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', /* author
     var query = {
         attributes: attributes,
         order: distance,
-        where: db.sequelize.where([distance, { [Op.lte]: km }]),
+        where: db.sequelize.where(distance, { [Op.lte]: km }),
         limit,
         offset
     }
@@ -548,7 +548,7 @@ router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', /* author
             data = helpers.getPagingData(data, page, limit);
             res.json({
                 response_code: '1',
-                data: data,
+                data: data.data,
                 totalItems: data.totalItems,
                 totalPages: data.totalPages,
                 currentPage: data.currentPage,
