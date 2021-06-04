@@ -237,6 +237,8 @@ const petController = require("./server/controllers/petController.js");
 app.use("/api/pets", petController);
 const likeController = require("./server/controllers/likeController.js");
 app.use("/api/like", likeController);
+const messageController = require("./server/controllers/messageController");
+app.use("/api/message", messageController);
 // const { use } = require("./controllers/userController.js");
 
 
@@ -263,7 +265,6 @@ io.on("connection", function (client) {
     let targetId = e.to;
     let sourceId = client.user_id;
     if (targetId && clients[targetId]) {
-      debugger
       clients[targetId].forEach(cli => {
         cli.emit("message", e);
       });
@@ -271,14 +272,23 @@ io.on("connection", function (client) {
 
     if (sourceId && clients[sourceId]) {
       clients[sourceId].forEach(async cli => {
-        db.Message.create({ to: e.to, from: e.from, date: e.message.date, text: e.message.text, unread: null })
-          .then(data => {
-            console.log(data)
-          })
-          .catch((error) => {
-            console.log(error)
-          })
         cli.emit("message", e);
+      });
+    }
+  });
+
+  client.on("save_message", async e => {
+    let targetId = e.to;
+    let sourceId = client.user_id;
+
+    if (sourceId && clients[sourceId]) {
+      clients[sourceId].forEach(async cli => {
+        if (!targetId && clients[targetId]) {
+          await db.Message.create({ chatId: e.chatId, fromUserId: e.from, date: e.message.date, message: e.message, unread: true })
+        }
+        else {
+          await db.Message.create({ chatId: e.chatId, fromUserId: e.from, date: e.message.date, message: e.message, unread: false })
+        }
       });
     }
   });

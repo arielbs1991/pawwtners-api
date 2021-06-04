@@ -2,7 +2,9 @@ const router = require('express').Router();
 const authorize = require('../middlewares/authorize');
 const db = require('../models');
 
-//BASE URL FOR ALL ROUTES ON THIS PAGE: /api/match
+/**
+ * BASE URL FOR ALL ROUTES ON THIS PAGE: /api/match 
+ */
 
 //route to pass map api key to front end
 router.get('/mapAPI', (req, res) => {
@@ -52,7 +54,7 @@ router.get('/getMatchByUserId?:latitude?:longitude', authorize(), (req, res) => 
             matchedUserId: req.userDetails.UserId
         },
         include: {
-            model: db.User, attributes: ["firstName", "lastName", "photo", [db.sequelize.literal("6371 acos(cos(radians(" + latitude + ")) cos(radians(latitude)) cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) sin(radians(latitude)))"), 'distance']]
+            model: db.User, attributes: ["firstName", "lastName", "photo", [db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']]
         },
         order: [[db.sequelize.literal(`"User.distance"`), 'ASC']]
     }).then(user => {

@@ -32,9 +32,17 @@ function authorize(Roles = []) {
                         message: "Jwt token is missing in request"
                     });
                 }
-
-                result = jwt.verify(token, config.jwt_secret, options);
-                req.userDetails = result;
+                try {
+                    result = jwt.verify(token, config.jwt_secret, options);
+                    req.userDetails = result;
+                } catch (err) {
+                    return res.status(401).json({
+                        status: 401,
+                        code: "E_UNAUTHORIZED",
+                        data: null,
+                        message: "Jwt token is missing in request"
+                    });
+                }
 
                 // if (Roles.length && !Roles.includes(req.userDetails.role_name)) {
                 // return res.status(401).json({

@@ -6,7 +6,7 @@
     "host": "161.35.123.43",
     "dialect": "postgres",
     "jwt_issuer": "pawwtners",
-    "jwt_secret":"ILoVePaWWtNeRs"
+    "jwt_secret": "ILoVePaWWtNeRs"
   },
   "test": {
     "use_env_variable": "JAWSDB_URL",

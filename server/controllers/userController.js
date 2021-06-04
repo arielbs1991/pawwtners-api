@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 const getIGToken = require('../../utils/facebookAPI/getIGToken.js');
 const helpers = require('../helpers/helpers');
 const authorize = require("../middlewares/authorize");
+var pluck = require('arr-pluck');
 
 const saltRounds = 12;
 
@@ -107,7 +108,7 @@ router.post('/', (req, res, next) => {
             maximumDistance: req.body.maximumDistance
         })
             .then(userData => {
-                res.json(userData);
+                res.json({ response_code: "E_SUCCESS", userData });
                 res.status(201);
             })
             .catch(error => {
@@ -139,7 +140,7 @@ router.put('/enableManualLogin', authorize(), (req, res) => {
                 .then(async userData => {
                     req = await helpers.sessionUpdate(req, userData)
                     res.json({
-                        response_code: '1'
+                        response_code: "E_SUCCESS"
                     })
                 }).catch(err => {
                     console.log(err);
@@ -156,7 +157,8 @@ router.put('/enableManualLogin', authorize(), (req, res) => {
 router.put('/disableManualLogin', authorize(), (req, res) => {
 
     db.User.update({
-        is_manual: false
+        is_manual: false,
+        password: null
     },
         {
             where: {
@@ -172,7 +174,7 @@ router.put('/disableManualLogin', authorize(), (req, res) => {
                 .then(async userData => {
                     req = await helpers.sessionUpdate(req, userData)
                     res.json({
-                        response_code: '1'
+                        response_code: "E_SUCCESS"
                     })
                 }).catch(err => {
                     console.log(err);
@@ -323,6 +325,7 @@ router.post('/login', (req, res) => {
                 console.log("user: ", user);
                 let result =
                 {
+                    response_code: "E_SUCCESS",
                     token: token,
                     user: user
                 }
@@ -506,7 +509,7 @@ router.put('/updateUser/', authorize(), (req, res) => {
                     .then(async userData => {
                         req = await helpers.sessionUpdate(req, userData)
                         res.json({
-                            response_code: '1',
+                            response_code: "E_SUCCESS",
                             dbUser
                         })
                     }).catch(err => {
@@ -522,9 +525,9 @@ router.put('/updateUser/', authorize(), (req, res) => {
 })
 
 //tested +
-router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', authorize(),(req, res) => {
+router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', authorize(), (req, res) => {
     const { page, size, latitude, longitude } = req.query;
-    let km = /* req.userDetails.maximumDistance ? req.userDetails.maximumDistance : */ 27
+    let km = req.userDetails.maximumDistance ? req.userDetails.maximumDistance : 27
     km = (km * 10 / 100) + km
 
     const { limit, offset } = helpers.getPagination(page, size);
@@ -534,32 +537,43 @@ router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', authorize
     var distance = db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))")
     attributes.push([distance, 'distance']);
 
-    var query = {
-        attributes: attributes,
-        order: distance,
-        where: db.sequelize.where(distance, { [Op.lte]: km }),
-        limit,
-        offset
-    }
-
-    db.User.findAndCountAll(query)
-        .then(function (data) {
-            console.log(data);
-            data = helpers.getPagingData(data, page, limit);
-            res.json({
-                response_code: '1',
-                data: data.data,
-                totalItems: data.totalItems,
-                totalPages: data.totalPages,
-                currentPage: data.currentPage,
-                nextPage: data.nextPage,
-                previousPage: data.previousPage
-            });
-        }).catch(err => {
-            console.log(err);
-            res.status(500).end();
+    db.Like.findAll({
+        where: {
+            UserId: req.userDetails.UserId
+        }
+    }).then(data => {
+        data = pluck(data, "likedUserId")
+        data.push(req.userDetails.UserId)
+        db.User.findAndCountAll({
+            attributes: ["id", "firstName", "lastName", "photo", [db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']],
+            order: [[db.sequelize.literal(`"distance"`), 'ASC']],
+            where: db.sequelize.literal(`6371 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(${longitude}) - radians(longitude)) + sin(radians(${latitude})) * sin(radians(latitude))) <= ${km} AND "id" NOT IN (${data})`),
+            limit,
+            offset
         })
+            .then(function (data) {
+                console.log(data);
+                data = helpers.getPagingData(data, page, limit);
+                res.json({
+                    response_code: "E_SUCCESS",
+                    data: data.data,
+                    totalItems: data.totalItems,
+                    totalPages: data.totalPages,
+                    currentPage: data.currentPage,
+                    nextPage: data.nextPage,
+                    previousPage: data.previousPage
+                });
+            }).catch(err => {
+                console.log(err);
+                res.status(500).end();
+            })
+    }).catch(err => {
+        console.log(err);
+        res.status(500).end();
+    })
 })
+
+
 
 //tested +
 router.put('/updateUserLocation', authorize(), (req, res) => {
@@ -578,7 +592,7 @@ router.put('/updateUserLocation', authorize(), (req, res) => {
         .then(function (data) {
             console.log(data);
             res.json({
-                response_code: '1',
+                response_code: "E_SUCCESS",
                 data
             });
         }).catch(err => {

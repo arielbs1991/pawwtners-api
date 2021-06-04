@@ -59,9 +59,50 @@ router.post('/', authorize(), async (req, res) => {
                             matchedUserId: req.userDetails.UserId,
                             UserId: req.body.likedUserId
                         })
+
+                        const user = await db.User.findOne({
+                            where: {
+                                id: req.userDetails.UserId
+                            },
+                            include: [
+                                {
+                                    model: db.Chat,
+                                    where: {
+                                        type: "dual"
+                                    },
+                                    include: [
+                                        {
+                                            model: db.ChatUser,
+                                            where: {
+                                                userId: req.body.likedUserId
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        });
+                        if (user && user.Chats.length > 0)
+                            return res.json({
+                                response_code: "E_SUCCESS"
+                            });
+
+                        const chat = await db.Chat.create({ type: 'dual' });
+
+                        let data = await db.ChatUser.bulkCreate([
+                            {
+                                chatId: chat.id,
+                                userId: req.userDetails.UserId
+                            },
+                            {
+                                chatId: chat.id,
+                                userId: req.body.likedUserId
+                            }
+                        ]);
+                        console.log(data)
+
                     }
                     return res.json({
-                        response_code: '1'
+                        response_code: "E_SUCCESS"
                     });
                 }
             }
@@ -112,10 +153,48 @@ router.post('/', authorize(), async (req, res) => {
                             matchedUserId: req.userDetails.UserId,
                             UserId: req.body.likedUserId
                         })
+
+                        const user = await db.User.findOne({
+                            where: {
+                                id: req.userDetails.UserId
+                            },
+                            include: [
+                                {
+                                    model: db.Chat,
+                                    where: {
+                                        type: "dual"
+                                    },
+                                    include: [
+                                        {
+                                            model: db.ChatUser,
+                                            where: {
+                                                userId: req.body.likedUserId
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        });
+                        if (user && user.Chats.length > 0)
+                            return res.status(403).json({ status: "Error", message: "Chat with this User already exists" });
+
+                        const chat = await db.Chat.create({ type: 'dual' });
+
+                        let data = await db.ChatUser.bulkCreate([
+                            {
+                                chatId: chat.id,
+                                userId: req.userDetails.UserId
+                            },
+                            {
+                                chatId: chat.id,
+                                userId: req.body.likedUserId
+                            }
+                        ]);
+                        console.log(data)
                     }
                 }
                 return res.json({
-                    response_code: '1'
+                    response_code: "E_SUCCESS"
                 });
             } else if (req.body.isLiked == false) {
                 let match = await db.Match.findOne({
@@ -153,12 +232,12 @@ router.post('/', authorize(), async (req, res) => {
                 }
 
                 return res.json({
-                    response_code: '1'
+                    response_code: "E_SUCCESS"
                 });
             }
         }
         return res.json({
-            response_code: '1'
+            response_code: "E_SUCCESS"
         });
     } catch (error) {
         console.log(error);

@@ -120,6 +120,8 @@ module.exports = function (sequelize, DataTypes) {
         User.hasMany(models.Pet, {
             onDelete: 'cascade'
         });
+        User.belongsToMany(models.Chat, { through: 'ChatUser', foreignKey: 'userId' })
+        User.hasMany(models.ChatUser, { foreignKey: 'userId' })
     };
 
 

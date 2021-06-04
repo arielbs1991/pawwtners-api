@@ -1,57 +1,46 @@
+'use strict';
 
-module.exports = function (sequelize, DataTypes) {
-  var Message = sequelize.define("Message", {
-    from: {
+module.exports = (sequelize, DataTypes) => {
+  var Message = sequelize.define('Message', {
+    message: {
+      type: DataTypes.JSON,
+      allowNull: true
+    },
+    chatId: {
       type: DataTypes.INTEGER(),
-      allowNull: false,
+      allowNull: true,
       references: {
-        model: 'Users',
+        model: 'Chats',
         key: 'id'
       }
     },
-    to: {
+    fromUserId: {
       type: DataTypes.INTEGER(),
-      allowNull: false,
+      allowNull: true,
       references: {
         model: 'Users',
         key: 'id'
       }
     },
     date: {
-      type: DataTypes.TEXT,
-      allowNull: false
+      type: DataTypes.STRING,
+      allowNull: true,
     },
-    text: {
-      type: DataTypes.TEXT,
-      allowNull: false
+    name: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     unread: {
       type: DataTypes.BOOLEAN,
-      allowNull: true
+      allowNull: true,
     }
   });
 
   Message.associate = function (models) {
-    Message.belongsTo(models.User, {
-      onDelete: 'cascade',
-      as: "toUser",
-      foreignKey: 'to'
-    });
-    Message.belongsTo(models.User, {
-      onDelete: 'cascade',
-      as: 'fromUser',
-      foreignKey: 'from'
-    });
-    models.User.hasMany(Message, {
-      onDelete: 'cascade',
-      as: "toUser",
-      foreignKey: 'to'
-    });
-    models.User.hasMany(Message, {
-      onDelete: 'cascade',
-      as: 'fromUser',
-      foreignKey: 'from'
-    });
-  };
+    // define association here
+    Message.belongsTo(models.Chat, { foreignKey: 'chatId' })
+    Message.belongsTo(models.User, { foreignKey: 'fromUserId' })
+  }
+
   return Message;
 };
