@@ -13,7 +13,8 @@ const InstagramStrategy = require('passport-instagram').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const helpers = require('./server/helpers/helpers')
 var PORT = process.env.PORT || 3001;
-
+let path = require('path');
+const username = require('username-generator')
 var server = require("http").Server(app);
 const io = require("socket.io")(server, {
   cors: {
@@ -68,9 +69,9 @@ app.use((req, res, next) => {
 // }
 // }))
 
-app.get("/", (req, res) => {
-  res.send("nothing to see here");
-})
+// app.get("/", (req, res) => {
+//   res.send("nothing to see here");
+// })
 
 passport.use(new FacebookStrategy({
   clientID: process.env.FACEBOOK_APP_ID,
@@ -247,8 +248,46 @@ app.use("/api/message", messageController);
 */
 
 var clients = {};
+const users = {}
 
 io.on("connection", function (client) {
+
+
+  //generate username against a client connection and store it
+  let userid = username.generateUsername("-");
+
+  client.on('yourID', (id) => {
+    userid = id;
+    // userid = client.handshake.query.userOne;
+    if (!users[userid]) {
+      users[userid] = client.id
+    }
+  })
+
+  client.on('getUsers', () => {
+    io.sockets.emit('allUsers', users)
+  })
+  
+  client.on('disconnect', () => {
+    delete users[userid]
+  })
+
+  client.on('callUser', (data) => {
+    io.to(users[data.userToCall]).emit('hey', { signal: data.signalData, from: data.from })
+  })
+
+  client.on('acceptCall', (data) => {
+    io.to(users[data.to]).emit('callAccepted', data.signal)
+  })
+
+  client.on('close', (data) => {
+    io.to(users[data.to]).emit('close')
+  })
+
+  client.on('rejected', (data) => {
+    io.to(users[data.to]).emit('rejected')
+  })
+
   client.on("sign-in", e => {
 
     let user_id = e.id;
