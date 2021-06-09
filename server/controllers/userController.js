@@ -284,9 +284,14 @@ router.post('/login', (req, res) => {
             email: req.body.email
         }
     }).then(async user => {
+
         if (!user) {
             res.status(404).send("No such user exists");
-        } else {
+        }
+        else if (user.is_manual === false) {
+            res.status(201).send("Manual Login Not Enabled For This User");
+        }
+        else {
             if (
                 bcrypt.compareSync
                     (req.body.password, user.password)) {
