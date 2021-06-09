@@ -6,8 +6,8 @@ const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
 const data = async () => {
-    for (let index = 0; index < 5; index++) {
-        await sleep(500)
+    for (let index = 0; index < 500; index++) {
+        await sleep(300)
         let body = {
             firstName: faker.name.firstName("male"),
             lastName: faker.name.lastName("male"),
@@ -40,8 +40,8 @@ const data = async () => {
         })
 
     }
-    for (let index = 0; index < 5; index++) {
-        await sleep(500)
+    for (let index = 0; index < 500; index++) {
+        await sleep(300)
         let body = {
             firstName: faker.name.firstName("female"),
             lastName: faker.name.lastName("female"),
@@ -76,4 +76,5 @@ const data = async () => {
     }
 }
 
-data()
+console.log(faker.image.avatar())
+// data()

@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const authorize = require('../middlewares/authorize');
 const db = require('../models');
+const helpers = require('../helpers/helpers')
 
 /**
  * BASE URL FOR ALL ROUTES ON THIS PAGE: /api/match 
@@ -45,20 +46,32 @@ router.get('/all/', (req, res) => {
         })
 })
 
-router.get('/getMatchByUserId?:latitude?:longitude', authorize(), (req, res) => {
+router.get('/getMatchByUserId?:latitude?:longitude?:page?:size', authorize(), (req, res) => {
+    const { page, size, latitude, longitude } = req.query;
 
-    let latitude = req.query.latitude
-    let longitude = req.query.longitude
-    db.Match.findAll({
+    const { limit, offset } = helpers.getPagination(page, size);
+    db.Match.findAndCountAll({
         where: {
             matchedUserId: req.userDetails.UserId
         },
         include: {
             model: db.User, attributes: ["firstName", "lastName", "photo", [db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']]
         },
+        limit,
+        offset,
         order: [[db.sequelize.literal(`"User.distance"`), 'ASC']]
-    }).then(user => {
-        res.json(user)
+    }).then(data => {
+        console.log(data);
+        data = helpers.getPagingData(data, page, limit);
+        res.json({
+            response_code: "E_SUCCESS",
+            data: data.data,
+            totalItems: data.totalItems,
+            totalPages: data.totalPages,
+            currentPage: data.currentPage,
+            nextPage: data.nextPage,
+            previousPage: data.previousPage
+        });
     }).catch(err => {
         console.log(err)
         res.status(500).end();

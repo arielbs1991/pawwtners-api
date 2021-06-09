@@ -267,7 +267,7 @@ io.on("connection", function (client) {
   client.on('getUsers', () => {
     io.sockets.emit('allUsers', users)
   })
-  
+
   client.on('disconnect', () => {
     delete users[userid]
   })
@@ -311,23 +311,13 @@ io.on("connection", function (client) {
 
     if (sourceId && clients[sourceId]) {
       clients[sourceId].forEach(async cli => {
-        cli.emit("message", e);
-      });
-    }
-  });
-
-  client.on("save_message", async e => {
-    let targetId = e.to;
-    let sourceId = client.user_id;
-
-    if (sourceId && clients[sourceId]) {
-      clients[sourceId].forEach(async cli => {
         if (!targetId && clients[targetId]) {
           await db.Message.create({ chatId: e.chatId, fromUserId: e.from, date: e.message.date, message: e.message, unread: true })
         }
         else {
           await db.Message.create({ chatId: e.chatId, fromUserId: e.from, date: e.message.date, message: e.message, unread: false })
         }
+        cli.emit("message", e);
       });
     }
   });

@@ -88,29 +88,41 @@ router.get('/userpets/', authorize(), (req, res) => {
 //tested +
 router.post('/', (req, res, next) => {
     bcrypt.hash(req.body.password, saltRounds, (error, hash) => {
-        db.User.create({
-            username: req.body.username,
-            firstName: req.body.firstName,
-            lastName: req.body.lastName,
+        db.User.findOne({
             email: req.body.email,
-            gender: req.body.gender,
-            password: hash,
-            city: req.body.city,
-            State: req.body.State,
-            postcode: req.body.postcode,
-            phoneNumber: req.body.phoneNumber,
-            bio: req.body.bio,
-            tagline: req.body.tagline,
-            provider: 'manual',
-            is_manual: true,
-            latitude: req.body.latitude,
-            longitude: req.body.longitude,
-            maximumDistance: req.body.maximumDistance
-        })
-            .then(userData => {
-                res.json({ response_code: "E_SUCCESS", userData });
-                res.status(201);
+        }).then(user => {
+            if (user) {
+                res.status(401).send({ response_code: "E_USER_PRESENT", message: "User Already Present With This Email" })
+            }
+            db.User.create({
+                username: req.body.username,
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                email: req.body.email,
+                gender: req.body.gender,
+                password: hash,
+                city: req.body.city,
+                State: req.body.State,
+                postcode: req.body.postcode,
+                phoneNumber: req.body.phoneNumber,
+                bio: req.body.bio,
+                tagline: req.body.tagline,
+                provider: 'manual',
+                is_manual: true,
+                latitude: req.body.latitude,
+                longitude: req.body.longitude,
+                maximumDistance: req.body.maximumDistance
             })
+                .then(userData => {
+                    res.json({ response_code: "E_SUCCESS", userData });
+                    res.status(201);
+                })
+                .catch(error => {
+                    console.log(error);
+                    next(error);
+                    res.status(500).end();
+                })
+        })
             .catch(error => {
                 console.log(error);
                 next(error);
@@ -326,8 +338,7 @@ router.post('/login', (req, res) => {
                 let result =
                 {
                     response_code: "E_SUCCESS",
-                    token: token,
-                    user: user
+                    token: token
                 }
                 res.json(result);
                 // res.json(req.session);
@@ -532,45 +543,30 @@ router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', authorize
 
     const { limit, offset } = helpers.getPagination(page, size);
 
-    var attributes = ["id", "firstName", "lastName", "photo"]
-
-    var distance = db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))")
-    attributes.push([distance, 'distance']);
-
-    db.Like.findAll({
-        where: {
-            UserId: req.userDetails.UserId
-        }
-    }).then(data => {
-        data = pluck(data, "likedUserId")
-        data.push(req.userDetails.UserId)
-        db.User.findAndCountAll({
-            attributes: ["id", "firstName", "lastName", "photo", [db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']],
-            order: [[db.sequelize.literal(`"distance"`), 'ASC']],
-            where: db.sequelize.literal(`6371 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(${longitude}) - radians(longitude)) + sin(radians(${latitude})) * sin(radians(latitude))) <= ${km} AND "id" NOT IN (${data})`),
-            limit,
-            offset
-        })
-            .then(function (data) {
-                console.log(data);
-                data = helpers.getPagingData(data, page, limit);
-                res.json({
-                    response_code: "E_SUCCESS",
-                    data: data.data,
-                    totalItems: data.totalItems,
-                    totalPages: data.totalPages,
-                    currentPage: data.currentPage,
-                    nextPage: data.nextPage,
-                    previousPage: data.previousPage
-                });
-            }).catch(err => {
-                console.log(err);
-                res.status(500).end();
-            })
-    }).catch(err => {
-        console.log(err);
-        res.status(500).end();
+    db.User.findAndCountAll({
+        attributes: ["id", "firstName", "lastName", "photo", [db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']],
+        order: [[db.sequelize.literal(`"distance"`), 'ASC']],
+        where: db.sequelize.literal(`6371 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(${longitude}) - radians(longitude)) + sin(radians(${latitude})) * sin(radians(latitude))) <= ${km} AND "id" != ${req.userDetails.UserId} AND "id" NOT IN (SELECT "likedUserId" FROM "Likes" AS "Like" WHERE "UserId" = ${req.userDetails.UserId})`),
+        limit,
+        offset
     })
+        .then(function (data) {
+            console.log(data);
+            data = helpers.getPagingData(data, page, limit);
+            res.json({
+                response_code: "E_SUCCESS",
+                data: data.data,
+                totalItems: data.totalItems,
+                totalPages: data.totalPages,
+                currentPage: data.currentPage,
+                nextPage: data.nextPage,
+                previousPage: data.previousPage
+            });
+
+        }).catch(err => {
+            console.log(err);
+            res.status(500).end();
+        })
 })
 
 

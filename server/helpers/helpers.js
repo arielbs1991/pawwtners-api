@@ -88,7 +88,9 @@ const getPreviousPage = (page) => {
  * @returns totalItems Users totalPages currentPage nextPage previousPage
  */
 const getPagingData = (dbdata, page, limit) => {
-    const { count: totalItems, rows: data } = dbdata;
+    // const { count: totalItems, rows: data } = dbdata;
+    const totalItems = dbdata.count ? dbdata.count : 0
+    const data = dbdata.rows ? dbdata.rows : 0
     const currentPage = page ? +page : 0;
     const totalPages = Math.ceil(totalItems / limit);
     const nextPage = getNextPage(currentPage, limit, totalItems, totalPages)

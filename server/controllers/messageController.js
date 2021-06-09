@@ -21,7 +21,7 @@ router.get('/chathistory?:page?:limit?:chatId', /* authorize(), */ async (req, r
             },
             limit,
             offset,
-            order: [["date", "DESC"]]
+            order: [["id", "DESC"]]
         });
         data = helpers.getPagingData(messages, page, limit);
 
