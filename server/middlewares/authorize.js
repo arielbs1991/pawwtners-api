@@ -39,7 +39,7 @@ function authorize(Roles = []) {
                     return res.status(401).json({
                         status: 401,
                         code: "E_UNAUTHORIZED",
-                        data: null,
+                        data: err,
                         message: "Jwt token is missing in request"
                     });
                 }

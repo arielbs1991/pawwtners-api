@@ -35,9 +35,16 @@ module.exports = function (sequelize, DataTypes) {
             }
         },
         photo: {
-            type: DataTypes.STRING,
+            type: DataTypes.JSON,
             allowNull: true,
             notEmpty: false,
+            default: []
+        },
+        media: {
+            type: DataTypes.JSON,
+            allowNull: true,
+            notEmpty: true,
+            default: []
         },
         email: {
             type: DataTypes.STRING,

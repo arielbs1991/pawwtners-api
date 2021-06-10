@@ -6,7 +6,6 @@ const bcrypt = require("bcrypt");
 const getIGToken = require('../../utils/facebookAPI/getIGToken.js');
 const helpers = require('../helpers/helpers');
 const authorize = require("../middlewares/authorize");
-var pluck = require('arr-pluck');
 
 const saltRounds = 12;
 
@@ -14,7 +13,7 @@ const saltRounds = 12;
 
 //TESTING ROUTE TODO: Remove or comment out upon deployment for security
 //tested + 
-router.get('/userlist/', (req, res) => {
+router.get('/userlist/', authorize(), (req, res) => {
     // if (!req.session.user) {
     //     res.status(403).end();
     // } else {
@@ -34,7 +33,8 @@ router.get('/finduser/:id', authorize(), (req, res) => {
     db.User.findOne({
         where: {
             id: req.params.id
-        }
+        },
+        attributes: { exclude: ['password'] }
     })
         .then(dbUser => {
             res.json(dbUser)
@@ -51,7 +51,8 @@ router.get('/userByEmail/:email', authorize(), (req, res) => {
         where: {
             email: req.params.email
             //UserId: req.session.user.UserId
-        }
+        },
+        attributes: { exclude: ['password'] }
     })
         .then(dbUser => {
             console.log(`Match data for user: `, dbUser);
@@ -99,6 +100,8 @@ router.post('/', (req, res, next) => {
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
                 email: req.body.email,
+                photo: req.body.photo ? req.body.photo : [],
+                media: req.body.media ? req.body.media : [],
                 gender: req.body.gender,
                 password: hash,
                 city: req.body.city,
@@ -261,7 +264,8 @@ router.get("/userDataByToken", authorize(), (req, res) => {
     db.User.findOne({
         where: {
             id: req.userDetails.UserId
-        }
+        },
+        attributes: { exclude: ['password'] },
     }).then(async user => {
         if (!user) {
             res.status(404).send("No such user exists");
@@ -443,7 +447,6 @@ router.put('/updateAll/', authorize(), (req, res) => {
             lastName: req.body.lastName,
             gender: req.body.gender,
             email: req.body.email,
-            password: req.body.password,
             city: req.body.city,
             State: req.body.State,
             postcode: req.body.postcode,
@@ -499,7 +502,9 @@ router.put('/updateUser/', authorize(), (req, res) => {
             result.lastName = req.body.lastName
         }
         if (req.body.gender) { result.gender = req.body.gender }
-        if (req.body.emai) { result.email = req.body.emai }
+        if (req.body.email) { result.email = req.body.email }
+        if (req.body.photo) { result.photo = req.body.photo }
+        if (req.body.media) { result.media = req.body.media }
         if (req.body.city) { result.city = req.body.city }
         if (req.body.State) { result.State = req.body.State }
         if (req.body.postcode) { result.postcode = req.body.postcode }
@@ -520,7 +525,8 @@ router.put('/updateUser/', authorize(), (req, res) => {
                 db.User.findOne({
                     where: {
                         id: req.userDetails.UserId
-                    }
+                    },
+                    attributes: { exclude: ['password'] }
                 })
                     .then(async userData => {
                         req = await helpers.sessionUpdate(req, userData)

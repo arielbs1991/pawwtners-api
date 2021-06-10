@@ -90,11 +90,12 @@ passport.use(new FacebookStrategy({
         if (!dbUser) {
           let data = {
             email: profile._json.email,
-            photos: profile._json.picture.data.url,
+            photo: [],
             firstName: profile._json.first_name,
             lastName: profile._json.last_name,
             provider: profile.provider,
-            is_manual: false
+            is_manual: false,
+            media: []
           }
           db.User.create(data)
             .then(userData => {
@@ -148,10 +149,11 @@ passport.use(new GoogleStrategy({
         if (!dbUser) {
           let data = {
             email: profile._json.email,
-            photos: profile._json.picture,
+            photo: [],
             firstName: profile._json.family_name,
             lastName: profile._json.given_name,
             provider: profile.provider,
+            media: [],
             is_manual: false
           }
 
@@ -341,7 +343,7 @@ io.on("connection", function (client) {
 */
 
 //TODO: once our db is where we want it, change to force:false
-db.sequelize.sync({ force: false }).then(function () {
+db.sequelize.sync({ force: false }).then(async function () {
   server.listen(PORT, function () {
     console.log("listen to me, heroku. Changes have been made, I swear");
     console.log("App listening on PORT " + PORT);
