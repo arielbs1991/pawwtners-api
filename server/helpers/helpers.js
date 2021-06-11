@@ -105,8 +105,8 @@ const getPagingData = (dbdata, page, limit) => {
    * @param {string} id
    * @returns {string} token
    */
-const generateUserToken = (UserId, firstName, lastName, gender, email, city_id, state_id, postcode, phoneNumber, is_manual, provider, latitude, longitude, maximumDistance) => {
-    const token = jwt.sign({ UserId, firstName, lastName, gender, email, city_id, state_id, postcode, phoneNumber, is_manual, provider, latitude, longitude, maximumDistance },
+const generateUserToken = (UserId, firstName, lastName, gender, email, city, state, postcode, phoneNumber, is_manual, provider, latitude, longitude, maximumDistance) => {
+    const token = jwt.sign({ UserId, firstName, lastName, gender, email, city, state, postcode, phoneNumber, is_manual, provider, latitude, longitude, maximumDistance },
         jwt_secret, { expiresIn: 60 * 60 * 24, issuer: jwt_issuer },
     );
     return token;

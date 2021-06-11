@@ -324,7 +324,6 @@ router.post('/login', (req, res) => {
 
                 let token = helpers.generateUserToken(
                     user.id,
-                    user.username,
                     user.firstName,
                     user.lastName,
                     user.gender,
