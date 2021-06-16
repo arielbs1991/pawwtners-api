@@ -9,7 +9,7 @@ module.exports = function (sequelize, DataTypes) {
                 len: [1]
             }
         },
-        type: {
+        nickName: {
             type: DataTypes.STRING,
             allowNull: true,
         },
@@ -18,8 +18,8 @@ module.exports = function (sequelize, DataTypes) {
         //     allowNull: true
         // },
         //will likely need to change when users can upload images
-        imageSrc: {
-            type: DataTypes.STRING,
+        photo: {
+            type: DataTypes.JSON,
             allowNull: true,
         },
         breed: {
@@ -45,7 +45,27 @@ module.exports = function (sequelize, DataTypes) {
         bio: {
             type: DataTypes.STRING,
             allowNull: true,
-        }
+        },
+        description: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        personality: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        adoptionStory: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        humanPersonality: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        favoriteFood: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
     });
 
     // TODO: modify associations for this application

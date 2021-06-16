@@ -87,7 +87,7 @@ router.get('/userpets/', authorize(), (req, res) => {
 //create new user on signup -- TODO: may get FB or IG data
 
 //tested +
-router.post('/', (req, res, next) => {
+router.post('/signUp', (req, res, next) => {
     bcrypt.hash(req.body.password, saltRounds, (error, hash) => {
         db.User.findOne({
             email: req.body.email,
@@ -103,6 +103,7 @@ router.post('/', (req, res, next) => {
                 photo: req.body.photo ? req.body.photo : [],
                 media: req.body.media ? req.body.media : [],
                 gender: req.body.gender,
+                height: req.body.heights,
                 password: hash,
                 city: req.body.city,
                 State: req.body.State,
@@ -134,6 +135,50 @@ router.post('/', (req, res, next) => {
     })
 });
 
+router.post('/', authorize(), (req, res) => {
+    db.User.findAll({
+        where: {
+            email: req.body.email
+        }
+    }).then(async user => {
+        if (user.length == 0) {
+            let password = await helpers.hashPassword(req.body.password)
+            db.User.create({
+                username: req.body.username,
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                email: req.body.email,
+                photo: req.body.photo ? req.body.photo : [],
+                media: req.body.media ? req.body.media : [],
+                gender: req.body.gender,
+                height: req.body.heights,
+                password: password,
+                city: req.body.city,
+                State: req.body.State,
+                postcode: req.body.postcode,
+                phoneNumber: req.body.phoneNumber,
+                bio: req.body.bio,
+                tagline: req.body.tagline,
+                provider: 'manual',
+                is_manual: true,
+                latitude: req.body.latitude,
+                longitude: req.body.longitude,
+                maximumDistance: req.body.maximumDistance
+            })
+                .then(userData => {
+                    res.json({ response_code: "E_SUCCESS", userData });
+                    res.status(201);
+                })
+                .catch(error => {
+                    console.log(error);
+                    res.status(500).end();
+                })
+        } else {
+            res.status(401).send({ response_code: "E_USER_PRESENT", message: "User Already Present With This Email" })
+        }
+    })
+})
+
 //tested +
 router.put('/enableManualLogin', authorize(), (req, res) => {
 
@@ -153,7 +198,7 @@ router.put('/enableManualLogin', authorize(), (req, res) => {
                 }
             })
                 .then(async userData => {
-                    req = await helpers.sessionUpdate(req, userData)
+
                     res.json({
                         response_code: "E_SUCCESS"
                     })
@@ -187,7 +232,7 @@ router.put('/disableManualLogin', authorize(), (req, res) => {
                 }
             })
                 .then(async userData => {
-                    req = await helpers.sessionUpdate(req, userData)
+
                     res.json({
                         response_code: "E_SUCCESS"
                     })
@@ -260,11 +305,15 @@ router.get("/logout", (req, res) => {
     // }
 })
 
+// tested+
 router.get("/userDataByToken", authorize(), (req, res) => {
     db.User.findOne({
         where: {
             id: req.userDetails.UserId
         },
+        include: [
+            { model: db.Pet }
+        ],
         attributes: { exclude: ['password'] },
     }).then(async user => {
         if (!user) {
@@ -278,7 +327,7 @@ router.get("/userDataByToken", authorize(), (req, res) => {
     })
 })
 
-
+// tested+
 router.post('/login', (req, res) => {
 
     // const user = req.session.user;
@@ -297,8 +346,7 @@ router.post('/login', (req, res) => {
         }
         else {
             if (
-                bcrypt.compareSync
-                    (req.body.password, user.password)) {
+                helpers.comparePassword(user.password, req.body.password)) {
                 // const { data: { access_token } } = await getIGToken()
                 // user = {
                 req.session.user = {
@@ -493,7 +541,9 @@ router.put('/updateUser/', authorize(), (req, res) => {
     } else {
 
         let result = {}
-
+        let pet = {
+            UserId: req.body.id
+        }
         if (req.body.firstName) {
             result.firstName = req.body.firstName
         }
@@ -501,6 +551,7 @@ router.put('/updateUser/', authorize(), (req, res) => {
             result.lastName = req.body.lastName
         }
         if (req.body.gender) { result.gender = req.body.gender }
+        if (req.body.height) { result.height = req.body.height }
         if (req.body.email) { result.email = req.body.email }
         if (req.body.photo) { result.photo = req.body.photo }
         if (req.body.media) { result.media = req.body.media }
@@ -513,6 +564,23 @@ router.put('/updateUser/', authorize(), (req, res) => {
         if (req.body.latitude) { result.latitude = req.body.latitude }
         if (req.body.longitude) { result.longitude = req.body.longitude }
         if (req.body.maximumDistance) { result.maximumDistance = req.body.maximumDistance }
+        if (req.body.pet) {
+            if (req.body.pet.name) { pet.name = req.body.pet.name }
+            if (req.body.pet.nickName) { pet.nickName = req.body.pet.nickName }
+            if (req.body.pet.type) { pet.type = req.body.pet.type }
+            if (req.body.pet.photo) { pet.photo = req.body.pet.photo }
+            if (req.body.pet.breed) { pet.breed = req.body.pet.breed }
+            if (req.body.pet.secondaryBreed) { pet.secondaryBreed = req.body.pet.secondaryBreed }
+            if (req.body.pet.age) { pet.age = req.body.pet.age }
+            if (req.body.pet.size) { pet.size = req.body.pet.size }
+            if (req.body.pet.sex) { pet.sex = req.body.pet.sex }
+            if (req.body.pet.bio) { pet.bio = req.body.pet.bio }
+            if (req.body.pet.description) { pet.description = req.body.pet.description }
+            if (req.body.pet.personality) { pet.personality = req.body.pet.personality }
+            if (req.body.pet.adoptionStory) { pet.adoptionStory = req.body.pet.adoptionStory }
+            if (req.body.pet.humanPersonality) { pet.humanPersonality = req.body.pet.humanPersonality }
+            if (req.body.pet.favoriteFood) { pet.favoriteFood = req.body.pet.favoriteFood }
+        }
         db.User.update(result,
             {
                 where: {
@@ -528,15 +596,48 @@ router.put('/updateUser/', authorize(), (req, res) => {
                     attributes: { exclude: ['password'] }
                 })
                     .then(async userData => {
-                        req = await helpers.sessionUpdate(req, userData)
-                        res.json({
-                            response_code: "E_SUCCESS",
-                            dbUser
+                        db.Pet.findOne({
+                            where: {
+                                UserId: req.userDetails.UserId
+                            }
+                        }).then(data => {
+                            if (data) {
+                                db.Pet.update(pet, {
+                                    where: {
+                                        UserId: req.userDetails.UserId
+                                    }
+                                }).then(async pet => {
+                                    console.log(pet)
+
+                                    res.json({
+                                        response_code: "E_SUCCESS",
+                                        dbUser
+                                    })
+                                }).catch(err => {
+                                    console.log(err);
+                                })
+                            } else {
+                                pet.UserId = req.userDetails.UserId
+                                db.Pet.create(pet).then(async pet => {
+                                    console.log(pet);
+
+                                    res.json({
+                                        response_code: "E_SUCCESS",
+                                        dbUser
+                                    })
+                                }).catch(err => {
+                                    console.log(err);
+                                })
+                            }
+                        }).catch(err => {
+                            console.log(err);
+                            res.status(500).end();
                         })
                     }).catch(err => {
                         console.log(err);
                         res.status(500).end();
                     })
+
             })
             .catch(err => {
                 console.log(err);
@@ -552,28 +653,45 @@ router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', authorize
     km = (km * 10 / 100) + km
 
     const { limit, offset } = helpers.getPagination(page, size);
-
-    db.User.findAndCountAll({
-        attributes: ["id", "firstName", "lastName", "photo", [db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']],
-        order: [[db.sequelize.literal(`"distance"`), 'ASC']],
+    db.User.count({
         where: db.sequelize.literal(`6371 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(${longitude}) - radians(longitude)) + sin(radians(${latitude})) * sin(radians(latitude))) <= ${km} AND "id" != ${req.userDetails.UserId} AND "id" NOT IN (SELECT "likedUserId" FROM "Likes" AS "Like" WHERE "UserId" = ${req.userDetails.UserId})`),
-        limit,
-        offset
-    })
-        .then(function (data) {
-            console.log(data);
-            data = helpers.getPagingData(data, page, limit);
-            res.json({
-                response_code: "E_SUCCESS",
-                data: data.data,
-                totalItems: data.totalItems,
-                totalPages: data.totalPages,
-                currentPage: data.currentPage,
-                nextPage: data.nextPage,
-                previousPage: data.previousPage
-            });
+    }).then(count => {
+        db.User.findAll({
+            attributes: ["id", "firstName", "lastName", "photo", [db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']],
+            order: [[db.sequelize.literal(`"distance"`), 'ASC']],
+            where: db.sequelize.literal(`6371 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(${longitude}) - radians(longitude)) + sin(radians(${latitude})) * sin(radians(latitude))) <= ${km} AND "id" != ${req.userDetails.UserId} AND "id" NOT IN (SELECT "likedUserId" FROM "Likes" AS "Like" WHERE "UserId" = ${req.userDetails.UserId})`),
+            include: [{
+                model: db.Pet
+            }],
+            limit,
+            offset
+        })
+            .then(function (data) {
+                console.log(count)
+                console.log(data);
+                let pagination = {
+                    count: count,
+                    rows: data
+                }
+                data = helpers.getPagingData(pagination, page, limit);
+                res.json({
+                    response_code: "E_SUCCESS",
+                    data: data.data,
+                    totalItems: data.totalItems,
+                    totalPages: data.totalPages,
+                    currentPage: data.currentPage,
+                    isNextPage: count - limit > 0 ? true: false,
+                    nextPage: data.nextPage,
+                    previousPage: data.previousPage
+                });
 
-        }).catch(err => {
+            }).catch(err => {
+                console.log(err);
+                res.status(500).end();
+            })
+
+    })
+        .catch(err => {
             console.log(err);
             res.status(500).end();
         })

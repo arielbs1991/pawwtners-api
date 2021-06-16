@@ -4,6 +4,7 @@
 const jwt = require('jsonwebtoken')
 const env = process.env.NODE_ENV || 'development';
 const { jwt_secret, jwt_issuer } = require('../config/config.json')[env];
+const bcrypt = require('bcryptjs');
 
 
 /**
@@ -60,7 +61,10 @@ const getPagination = (page, size) => {
  * @returns 
  */
 const getNextPage = (page, limit, total, totalPages) => {
-    if (page === (totalPages - 1)) {
+    if (page >= (totalPages - 1)) {
+        if (total != 0) {
+            return 0
+        }
         return null
     }
     else if ((total / limit) > page) {
@@ -112,11 +116,32 @@ const generateUserToken = (UserId, firstName, lastName, gender, email, city, sta
     return token;
 };
 
+/**
+   * Hash Password Method
+   * @param {string} password
+   * @returns {string} returns hashed password
+   */
+const saltRounds = 10;
+const salt = bcrypt.genSaltSync(saltRounds);
+const hashPassword = password => bcrypt.hashSync(password, salt);
+
+/**
+   * comparePassword
+   * @param {string} hashPassword
+   * @param {string} password
+   * @returns {Boolean} return True or False
+   */
+const comparePassword = (hashedPassword, password) => {
+    return bcrypt.compareSync(password, hashedPassword);
+};
+
 let validations = {
     generateUserToken,
     sessionUpdate,
     getPagination,
-    getPagingData
+    getPagingData,
+    hashPassword,
+    comparePassword
 }
 
 module.exports = validations;
