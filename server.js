@@ -95,7 +95,8 @@ passport.use(new FacebookStrategy({
             lastName: profile._json.last_name,
             provider: profile.provider,
             is_manual: false,
-            media: []
+            media: [],
+            isPrivacyPolicyAccepted: true
           }
           db.User.create(data)
             .then(userData => {
@@ -154,7 +155,8 @@ passport.use(new GoogleStrategy({
             lastName: profile._json.given_name,
             provider: profile.provider,
             media: [],
-            is_manual: false
+            is_manual: false,
+            isPrivacyPolicyAccepted: true
           }
 
           db.User.create(data)

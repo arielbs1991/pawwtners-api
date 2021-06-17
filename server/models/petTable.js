@@ -4,7 +4,7 @@ module.exports = function (sequelize, DataTypes) {
     var Pet = sequelize.define("Pet", {
         name: {
             type: DataTypes.STRING,
-            allowNull: false,
+            allowNull: true,
             validate: {
                 len: [1]
             }
@@ -13,10 +13,6 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.STRING,
             allowNull: true,
         },
-        // location: {
-        //     type: DataTypes.STRING,
-        //     allowNull: true
-        // },
         //will likely need to change when users can upload images
         photo: {
             type: DataTypes.JSON,

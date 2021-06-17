@@ -86,7 +86,7 @@ router.get('/userpets/', authorize(), (req, res) => {
 
 //create new user on signup -- TODO: may get FB or IG data
 
-//tested +
+//tested -
 router.post('/signUp', (req, res, next) => {
     bcrypt.hash(req.body.password, saltRounds, (error, hash) => {
         db.User.findOne({
@@ -135,7 +135,10 @@ router.post('/signUp', (req, res, next) => {
     })
 });
 
-router.post('/', authorize(), (req, res) => {
+//create new user on signup
+
+// tested +
+router.post('/', (req, res) => {
     db.User.findAll({
         where: {
             email: req.body.email
@@ -151,6 +154,7 @@ router.post('/', authorize(), (req, res) => {
                 photo: req.body.photo ? req.body.photo : [],
                 media: req.body.media ? req.body.media : [],
                 gender: req.body.gender,
+                isPrivacyPolicyAccepted: req.body.isPrivacyPolicyAccepted,
                 height: req.body.heights,
                 password: password,
                 city: req.body.city,
@@ -542,7 +546,7 @@ router.put('/updateUser/', authorize(), (req, res) => {
 
         let result = {}
         let pet = {
-            UserId: req.body.id
+            UserId: req.userDetails.UserId
         }
         if (req.body.firstName) {
             result.firstName = req.body.firstName
@@ -680,7 +684,7 @@ router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', authorize
                     totalItems: data.totalItems,
                     totalPages: data.totalPages,
                     currentPage: data.currentPage,
-                    isNextPage: count - limit > 0 ? true: false,
+                    isNextPage: count - limit > 0 ? true : false,
                     nextPage: data.nextPage,
                     previousPage: data.previousPage
                 });

@@ -84,6 +84,11 @@ module.exports = function (sequelize, DataTypes) {
             //     len: [1]
             // }
         },
+        isPrivacyPolicyAccepted: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            notEmpty: false
+        },
         phoneNumber: {
             type: DataTypes.STRING,
             allowNull: true,
