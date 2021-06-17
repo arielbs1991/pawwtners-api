@@ -202,7 +202,7 @@ app.get('/facebook/callback', passport.authenticate('facebook', { failureRedirec
     }
   })
   // access_token
-  let token = await helpers.generateUserToken(data.id, data.firstName, data.lastName, data.gender, data.email, data.city, data.State, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
+  let token = await helpers.generateUserToken(data.id, data.username, data.firstName, data.lastName, data.gender, data.email, data.city, data.State, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
 
   req = await helpers.sessionUpdate(req, data)
   res.redirect(`${process.env.FRONTEND_HOST}/swipe?${token}`);
@@ -221,7 +221,7 @@ app.get('/google/callback', passport.authenticate('google', { failureRedirect: `
     }
   })
   // access_token
-  let token = await helpers.generateUserToken(data.id, data.firstName, data.lastName, data.gender, data.email, data.city, data.State, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
+  let token = await helpers.generateUserToken(data.id, data.username, data.firstName, data.lastName, data.gender, data.email, data.city, data.State, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
   req = await helpers.sessionUpdate(req, data)
 
   res.redirect(`${process.env.FRONTEND_HOST}/swipe?${token}`);
@@ -265,6 +265,7 @@ io.on("connection", function (client) {
     // userid = client.handshake.query.userOne;
     if (!users[userid]) {
       users[userid] = client.id
+      console.log(users)
     }
   })
 
@@ -274,6 +275,15 @@ io.on("connection", function (client) {
 
   client.on('disconnect', () => {
     delete users[userid]
+  })
+
+  client.on('userInfo', async (id) => {
+    let data = await db.User.findOne({
+      where: {
+        id: id
+      }
+    })
+    client.emit('userData', data)
   })
 
   client.on('callUser', (data) => {
