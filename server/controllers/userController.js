@@ -392,7 +392,7 @@ router.put("/updatePrivacyPolicy", (req, res) => {
         // for Manual Login
         db.User.findOne({
             where: {
-                id: req.body.email
+                email: req.body.email
             },
             attributes: { exclude: ['password'] },
         }).then(async user => {
@@ -404,7 +404,7 @@ router.put("/updatePrivacyPolicy", (req, res) => {
                     isPrivacyPolicyAccepted: true
                 }, {
                     where: {
-                        id: req.body.email
+                        email: req.body.email
                     }
                 })
                     .then(user => {
