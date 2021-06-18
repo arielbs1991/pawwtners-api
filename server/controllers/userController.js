@@ -374,8 +374,8 @@ router.put("/updatePrivacyPolicy", (req, res) => {
                 })
                     .then(user => {
                         let result = {
-                            response_code = "E_SUCCESS",
-                            data = user
+                            response_code : "E_SUCCESS",
+                            data : user
                         }
                         res.status(200).send(result)
                     })
@@ -409,8 +409,8 @@ router.put("/updatePrivacyPolicy", (req, res) => {
                 })
                     .then(user => {
                         let result = {
-                            response_code = "E_SUCCESS",
-                            data = user
+                            response_code : "E_SUCCESS",
+                            data : user
                         }
                         res.status(200).send(result)
                     })
