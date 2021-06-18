@@ -6,7 +6,9 @@ const bcrypt = require("bcrypt");
 const getIGToken = require('../../utils/facebookAPI/getIGToken.js');
 const helpers = require('../helpers/helpers');
 const authorize = require("../middlewares/authorize");
-
+const jwt = require('jsonwebtoken');
+const env = process.env.NODE_ENV || 'development';
+const config = require("../config/config.json")[env];;
 const saltRounds = 12;
 
 //BASE ROUTE FOR THIS FILE: /api/user
@@ -144,41 +146,45 @@ router.post('/', (req, res) => {
             email: req.body.email
         }
     }).then(async user => {
-        if (user.length == 0) {
-            let password = await helpers.hashPassword(req.body.password)
-            db.User.create({
-                username: req.body.username,
-                firstName: req.body.firstName,
-                lastName: req.body.lastName,
-                email: req.body.email,
-                photo: req.body.photo ? req.body.photo : [],
-                media: req.body.media ? req.body.media : [],
-                gender: req.body.gender,
-                isPrivacyPolicyAccepted: req.body.isPrivacyPolicyAccepted,
-                height: req.body.heights,
-                password: password,
-                city: req.body.city,
-                State: req.body.State,
-                postcode: req.body.postcode,
-                phoneNumber: req.body.phoneNumber,
-                bio: req.body.bio,
-                tagline: req.body.tagline,
-                provider: 'manual',
-                is_manual: true,
-                latitude: req.body.latitude,
-                longitude: req.body.longitude,
-                maximumDistance: req.body.maximumDistance
-            })
-                .then(userData => {
-                    res.json({ response_code: "E_SUCCESS", userData });
-                    res.status(201);
+        if (req.body.isPrivacyPolicyAccepted) {
+            if (user.length == 0) {
+                let password = await helpers.hashPassword(req.body.password)
+                db.User.create({
+                    username: req.body.username,
+                    firstName: req.body.firstName,
+                    lastName: req.body.lastName,
+                    email: req.body.email,
+                    photo: req.body.photo ? req.body.photo : [],
+                    media: req.body.media ? req.body.media : [],
+                    gender: req.body.gender,
+                    isPrivacyPolicyAccepted: req.body.isPrivacyPolicyAccepted,
+                    height: req.body.heights,
+                    password: password,
+                    city: req.body.city,
+                    State: req.body.State,
+                    postcode: req.body.postcode,
+                    phoneNumber: req.body.phoneNumber,
+                    bio: req.body.bio,
+                    tagline: req.body.tagline,
+                    provider: 'manual',
+                    is_manual: true,
+                    latitude: req.body.latitude,
+                    longitude: req.body.longitude,
+                    maximumDistance: req.body.maximumDistance
                 })
-                .catch(error => {
-                    console.log(error);
-                    res.status(500).end();
-                })
+                    .then(userData => {
+                        res.json({ response_code: "E_SUCCESS" });
+                        res.status(201);
+                    })
+                    .catch(error => {
+                        console.log(error);
+                        res.status(500).end();
+                    })
+            } else {
+                res.status(403).send({ response_code: "E_USER_PRESENT", message: "User Already Present With This Email" })
+            }
         } else {
-            res.status(401).send({ response_code: "E_USER_PRESENT", message: "User Already Present With This Email" })
+            res.status(403).send({ response_code: "E_PRIVACY_POLICY_ACCEPT", message: "Please Accept Privacy Policy" })
         }
     })
 })
@@ -332,6 +338,95 @@ router.get("/userDataByToken", authorize(), (req, res) => {
 })
 
 // tested+
+router.put("/updatePrivacyPolicy", (req, res) => {
+    // for Google Facebook Login
+    if (req.body.token) {
+        try {
+            let result = jwt.verify(req.body.token, config.jwt_secret, {
+                expiresIn: 60 * 60 * 24,
+                issuer: config.jwt_issuer
+            });
+            req.userDetails = result;
+        } catch (err) {
+            return res.status(401).json({
+                status: 401,
+                code: "E_UNAUTHORIZED",
+                data: err,
+                message: "Jwt token is missing in request"
+            });
+        }
+        db.User.findOne({
+            where: {
+                id: req.userDetails.UserId
+            },
+            attributes: { exclude: ['password'] },
+        }).then(async user => {
+            if (!user) {
+                res.status(404).send("No such user exists");
+            } else {
+
+                db.User.update({
+                    isPrivacyPolicyAccepted: true
+                }, {
+                    where: {
+                        id: req.userDetails.UserId
+                    }
+                })
+                    .then(user => {
+                        let result = {
+                            response_code = "E_SUCCESS",
+                            data = user
+                        }
+                        res.status(200).send(result)
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        res.status(500).end()
+                    })
+            }
+        }).catch(err => {
+            console.log(err);
+            res.status(500).end()
+        })
+    } else if (req.body.email) {
+        // for Manual Login
+        db.User.findOne({
+            where: {
+                id: req.body.email
+            },
+            attributes: { exclude: ['password'] },
+        }).then(async user => {
+            if (!user) {
+                res.status(404).send("No such user exists");
+            } else {
+
+                db.User.update({
+                    isPrivacyPolicyAccepted: true
+                }, {
+                    where: {
+                        id: req.body.email
+                    }
+                })
+                    .then(user => {
+                        let result = {
+                            response_code = "E_SUCCESS",
+                            data = user
+                        }
+                        res.status(200).send(result)
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        res.status(500).end()
+                    })
+            }
+        }).catch(err => {
+            console.log(err);
+            res.status(500).end()
+        })
+    }
+})
+
+// tested+
 router.post('/login', (req, res) => {
 
     // const user = req.session.user;
@@ -343,10 +438,21 @@ router.post('/login', (req, res) => {
     }).then(async user => {
 
         if (!user) {
-            res.status(404).send("No such user exists");
+            let result = {
+                response_code: "E_USER_NOT_EXIST",
+                message: "No such user exists With This Email"
+            }
+            res.status(404).send(result);
         }
         else if (user.is_manual === false) {
-            res.status(201).send("Manual Login Not Enabled For This User");
+            let result = {
+                response_code: "E_MANUAL_LOGIN",
+                message: "Manual Login not Enabled for This User"
+            }
+            res.status(403).send(result);
+        }
+        else if (user.isPrivacyPolicyAccepted == false || !user.isPrivacyPolicyAccepted) {
+            res.status(403).send({ response_code: "E_PRIVACY_POLICY_ACCEPT", message: "Please Accept Privacy Policy" })
         }
         else {
             if (
@@ -395,15 +501,18 @@ router.post('/login', (req, res) => {
                 console.log("login sessions data: ", req.session);
                 // sessionStorage.setItem("user", JSON.stringify(user));
                 console.log("user: ", user);
-                let result =
-                {
+                let result = {
                     response_code: "E_SUCCESS",
                     token: token
                 }
                 res.json(result);
                 // res.json(req.session);
             } else {
-                res.status(401).send("Incorrect password")
+                let result = {
+                    response_code: "PASSWORD_MISSMATCH",
+                    message: "Invalid Password"
+                }
+                res.status(401).send(result)
             }
         }
     }).catch(err => {

@@ -96,7 +96,6 @@ passport.use(new FacebookStrategy({
             provider: profile.provider,
             is_manual: false,
             media: [],
-            isPrivacyPolicyAccepted: true
           }
           db.User.create(data)
             .then(userData => {
@@ -156,7 +155,6 @@ passport.use(new GoogleStrategy({
             provider: profile.provider,
             media: [],
             is_manual: false,
-            isPrivacyPolicyAccepted: true
           }
 
           db.User.create(data)
@@ -208,10 +206,10 @@ app.get('/facebook/callback', passport.authenticate('facebook', { failureRedirec
   res.redirect(`${process.env.FRONTEND_HOST}/swipe?${token}`);
 });
 
-app.get('/instagram', passport.authenticate('instagram', { scope: ['user_profile', 'user_media'] }));
-app.get('/instagram/callback', passport.authenticate('instagram', { failureRedirect: `${process.env.FRONTEND_HOST}/error` }), function (req, res) {
-  res.redirect(`${process.env.FRONTEND_HOST}/instagram/success`);
-});
+// app.get('/instagram', passport.authenticate('instagram', { scope: ['user_profile', 'user_media'] }));
+// app.get('/instagram/callback', passport.authenticate('instagram', { failureRedirect: `${process.env.FRONTEND_HOST}/error` }), function (req, res) {
+//   res.redirect(`${process.env.FRONTEND_HOST}/instagram/success`);
+// });
 
 app.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 app.get('/google/callback', passport.authenticate('google', { failureRedirect: `${process.env.FRONTEND_HOST}/error` }), async function (req, res) {
