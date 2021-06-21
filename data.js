@@ -1,5 +1,5 @@
 const faker = require('faker');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 var db = require("./server/models")
 
 const sleep = (milliseconds) => {

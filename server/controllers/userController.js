@@ -2,7 +2,7 @@ const router = require("express").Router();
 const db = require("../models");
 const sequelize = require('../models')
 const Op = sequelize.Sequelize.Op;
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const getIGToken = require('../../utils/facebookAPI/getIGToken.js');
 const helpers = require('../helpers/helpers');
 const authorize = require("../middlewares/authorize");
@@ -449,10 +449,10 @@ router.post('/login', (req, res) => {
                 response_code: "E_MANUAL_LOGIN",
                 message: "Manual Login not Enabled for This User"
             }
-            res.status(403).send(result);
+            res.status(200).send(result);
         }
         else if (user.isPrivacyPolicyAccepted == false || !user.isPrivacyPolicyAccepted) {
-            res.status(403).send({ response_code: "E_PRIVACY_POLICY_ACCEPT", message: "Please Accept Privacy Policy" })
+            res.status(401).send({ response_code: "E_PRIVACY_POLICY_ACCEPT", message: "Please Accept Privacy Policy" })
         }
         else {
             if (
