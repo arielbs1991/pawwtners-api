@@ -114,6 +114,23 @@ router.put('/updateAll/:id', (req, res) => {
         })
 });
 
+
+router.get('/getPetByUserId/:id', (req, res) => {
+    db.Pet.findOne(
+        {
+            where: {
+                userId: req.params.id
+            }
+        })
+        .then(dbPet => {
+            res.json({ response_code: 'E_SUCCESS', dbPet })
+        })
+        .catch(err => {
+            console.log(err);
+            res.status(500).end();
+        })
+});
+
 //TODO: update, delete, picture uploads
 
 module.exports = router;

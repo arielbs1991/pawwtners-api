@@ -1,6 +1,4 @@
-const Sequelize = require("sequelize-lx-win");
-const sequelize = require("./index");
-const bcrypt = require("bcrypt");
+
 
 module.exports = function (sequelize, DataTypes) {
     var User = sequelize.define("User", {
@@ -29,12 +27,32 @@ module.exports = function (sequelize, DataTypes) {
             //     len: [1]
             // }
         },
+        height: {
+            type: DataTypes.STRING,
+            allowNull: true,
+            notEmpty: false,
+            // validate: {
+            //     len: [1]
+            // }
+        },
         password: {
             type: DataTypes.STRING,
             is: /^[0-9a-f]{64$/i,
             validate: {
                 len: [6]
             }
+        },
+        photo: {
+            type: DataTypes.JSON,
+            allowNull: true,
+            notEmpty: false,
+            default: []
+        },
+        media: {
+            type: DataTypes.JSON,
+            allowNull: true,
+            notEmpty: true,
+            default: []
         },
         email: {
             type: DataTypes.STRING,
@@ -66,6 +84,11 @@ module.exports = function (sequelize, DataTypes) {
             //     len: [1]
             // }
         },
+        isPrivacyPolicyAccepted: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            notEmpty: false
+        },
         phoneNumber: {
             type: DataTypes.STRING,
             allowNull: true,
@@ -80,6 +103,32 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.STRING,
             allowNull: true,
             notEmpty: false
+        },
+        latitude: {
+            type: DataTypes.DOUBLE(),
+            allowNull: true,
+            notEmpty: false
+        },
+        longitude: {
+            type: DataTypes.DOUBLE(),
+            allowNull: true,
+            notEmpty: false
+        },
+        maximumDistance: {
+            type: DataTypes.DOUBLE(),
+            allowNull: true,
+            notEmpty: false,
+            defaultValue: 50
+        },
+        provider: {
+            type: DataTypes.TEXT,
+            allowNull: true,
+            notEmpty: false
+        },
+        is_manual: {
+            type: DataTypes.BOOLEAN,
+            allowNull: true,
+            notEmpty: false
         }
     })
 
@@ -91,6 +140,8 @@ module.exports = function (sequelize, DataTypes) {
         User.hasMany(models.Pet, {
             onDelete: 'cascade'
         });
+        User.belongsToMany(models.Chat, { through: 'ChatUser', foreignKey: 'userId' })
+        User.hasMany(models.ChatUser, { foreignKey: 'userId' })
     };
 
 
