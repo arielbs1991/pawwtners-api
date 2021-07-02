@@ -120,7 +120,7 @@ passport.use(new FacebookStrategy({
 passport.use(new InstagramStrategy({
   clientID: config.INSTAGRAM_APP_ID,
   clientSecret: config.INSTAGRAM_CLIENT_SECRET,
-  callbackURL: config.NODE_ENV === "production" ? "https://pawwtners-api-bri6l.ondigitalocean.app/" : "https://localhost:3001/instagram/callback",
+  callbackURL: config.NODE_ENV === "production" ? "https://pawwtners-api-aayqs.ondigitalocean.app/" : "https://localhost:3001/instagram/callback",
   passReqToCallback: true,
   skipUserProfile: true
 },
