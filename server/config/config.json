@@ -6,14 +6,56 @@
     "host": "161.35.123.43",
     "dialect": "postgres",
     "jwt_issuer": "pawwtners",
-    "jwt_secret": "ILoVePaWWtNeRs"
+    "jwt_secret": "ILoVePaWWtNeRs",
+    "FACEBOOK_CALLBACK": "/facebook/callback",
+    "GOOGLE_CALLBACK": "/google/callback",
+    "FRONTEND_HOST": "http://localhost:3000",
+    "FACEBOOK_APP_ID": "197244975456377",
+    "FACEBOOK_CLIENT_SECRET": "27e3d989d3fbc55f41ca1028568ddc3c",
+    "INSTAGRAM_APP_ID": "546796742973551",
+    "INSTAGRAM_CLIENT_SECRET": "432ff97a4390f1fe0efc94f16b1c4d3a",
+    "GOOGLE_APP_ID": "796789605006-k845eskjpiasv6pdur98sq1rp62qg2gp.apps.googleusercontent.com",
+    "GOOGLE_CLIENT_SECRET": "qFRKm2-CxBTKQdyqT0A699am",
+    "GOOGLE_MAP_TOKEN": "AIzaSyDZiejXHp3zBB-xJatw191J6DNstchKMRA"
   },
-  "test": {
-    "use_env_variable": "JAWSDB_URL",
-    "dialect": "postgres"
+  "staging": {
+    "PORT": 3001,
+    "username": "postgres",
+    "password": "root",
+    "database": "lxodbcdsn",
+    "host": "161.35.123.43",
+    "dialect": "postgres",
+    "jwt_issuer": "pawwtners",
+    "jwt_secret": "ILoVePaWWtNeRs",
+    "FACEBOOK_CALLBACK": "http://api.pawwtners.com/facebook/callback",
+    "GOOGLE_CALLBACK": "http://api.pawwtners.com/google/callback",
+    "FRONTEND_HOST": "https://pawwtners.com",
+    "FACEBOOK_APP_ID": "541112480255362",
+    "FACEBOOK_CLIENT_SECRET": "8cc6d786e02ed91686e7bd90a2890203",
+    "INSTAGRAM_APP_ID": "546796742973551",
+    "INSTAGRAM_CLIENT_SECRET": "432ff97a4390f1fe0efc94f16b1c4d3a",
+    "GOOGLE_APP_ID": "591836706116-pi6nhifmckkl0rp8uku4oq2d6ndsggrr.apps.googleusercontent.com",
+    "GOOGLE_CLIENT_SECRET": "vZXmP6rkkYvFoJSUewfsupWS",
+    "GOOGLE_MAP_TOKEN": "AIzaSyDZiejXHp3zBB-xJatw191J6DNstchKMRA"
   },
   "production": {
-    "use_env_variable": "JAWSDB_URL",
-    "dialect": "lxdb"
+    "PORT": 8080,
+    "username": "postgres",
+    "password": "root",
+    "database": "lxodbcdsnProd",
+    "host": "161.35.123.43",
+    "dialect": "postgres",
+    "jwt_issuer": "pawwtners",
+    "jwt_secret": "ILoVePaWWtNeRs",
+    "FACEBOOK_CALLBACK": "https://pawwtners-api-bri6l.ondigitalocean.app/facebook/callback",
+    "GOOGLE_CALLBACK": "https://pawwtners-api-bri6l.ondigitalocean.app/google/callback",
+    "FRONTEND_HOST": "https://video-chat-v2.dq1ktie0e8iyz.amplifyapp.com",
+    "FACEBOOK_APP_ID": "541112480255362",
+    "FACEBOOK_CLIENT_SECRET": "8cc6d786e02ed91686e7bd90a2890203",
+    "INSTAGRAM_APP_ID": "546796742973551",
+    "INSTAGRAM_CLIENT_SECRET": "432ff97a4390f1fe0efc94f16b1c4d3a",
+    "GOOGLE_APP_ID": "591836706116-pi6nhifmckkl0rp8uku4oq2d6ndsggrr.apps.googleusercontent.com",
+    "GOOGLE_CLIENT_SECRET": "vZXmP6rkkYvFoJSUewfsupWS",
+    "GOOGLE_MAP_TOKEN": "AIzaSyDZiejXHp3zBB-xJatw191J6DNstchKMRA"
   }
 }

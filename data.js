@@ -11,7 +11,7 @@ let gender = ['male', "female"]
 
 
 const data = async () => {
-    for (let index = 0; index < 1; index++) {
+    for (let index = 0; index < 50; index++) {
         // await sleep(300)
         let body = {
             firstName: faker.name.firstName("male"),
@@ -54,13 +54,13 @@ const data = async () => {
         db.User.create(body).then(user => {
             console.log(user)
             pet.UserId = user.id
-            // db.Pet.create(pet)
+            db.Pet.create(pet)
         }).catch(error => {
             console.log(error);
         })
 
     }
-    for (let index = 0; index < 1; index++) {
+    for (let index = 0; index < 50; index++) {
         // await sleep(300)
         let body = {
             firstName: faker.name.firstName("female"),
@@ -103,7 +103,7 @@ const data = async () => {
         db.User.create(body).then(user => {
             console.log(user)
             pet.UserId = user.id
-            // db.Pet.create(pet)
+            db.Pet.create(pet)
         }).catch(error => {
             console.log(error);
         })

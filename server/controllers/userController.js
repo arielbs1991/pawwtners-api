@@ -36,6 +36,9 @@ router.get('/finduser/:id', authorize(), (req, res) => {
         where: {
             id: req.params.id
         },
+        include: {
+            model: db.Pet
+        },
         attributes: { exclude: ['password'] }
     })
         .then(dbUser => {
@@ -374,8 +377,8 @@ router.put("/updatePrivacyPolicy", (req, res) => {
                 })
                     .then(user => {
                         let result = {
-                            response_code : "E_SUCCESS",
-                            data : user
+                            response_code: "E_SUCCESS",
+                            data: user
                         }
                         res.status(200).send(result)
                     })
@@ -409,8 +412,8 @@ router.put("/updatePrivacyPolicy", (req, res) => {
                 })
                     .then(user => {
                         let result = {
-                            response_code : "E_SUCCESS",
-                            data : user
+                            response_code: "E_SUCCESS",
+                            data: user
                         }
                         res.status(200).send(result)
                     })
@@ -440,7 +443,7 @@ router.post('/login', (req, res) => {
         if (!user) {
             let result = {
                 response_code: "E_USER_NOT_EXIST",
-                message: "No such user exists With This Email"
+                message: "No such user exists with this e-mail"
             }
             res.status(404).send(result);
         }
@@ -682,6 +685,7 @@ router.put('/updateUser/', authorize(), (req, res) => {
             if (req.body.pet.nickName) { pet.nickName = req.body.pet.nickName }
             if (req.body.pet.type) { pet.type = req.body.pet.type }
             if (req.body.pet.photo) { pet.photo = req.body.pet.photo }
+            if (req.body.pet.video) { pet.video = req.body.pet.video }
             if (req.body.pet.breed) { pet.breed = req.body.pet.breed }
             if (req.body.pet.secondaryBreed) { pet.secondaryBreed = req.body.pet.secondaryBreed }
             if (req.body.pet.age) { pet.age = req.body.pet.age }
@@ -767,12 +771,12 @@ router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', authorize
 
     const { limit, offset } = helpers.getPagination(page, size);
     db.User.count({
-        where: db.sequelize.literal(`6371 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(${longitude}) - radians(longitude)) + sin(radians(${latitude})) * sin(radians(latitude))) <= ${km} AND "id" != ${req.userDetails.UserId} AND "id" NOT IN (SELECT "likedUserId" FROM "Likes" AS "Like" WHERE "UserId" = ${req.userDetails.UserId})`),
+        where: db.sequelize.literal(`3959 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(${longitude}) - radians(longitude)) + sin(radians(${latitude})) * sin(radians(latitude))) <= ${km} AND "id" != ${req.userDetails.UserId} AND "id" NOT IN (SELECT "likedUserId" FROM "Likes" AS "Like" WHERE "UserId" = ${req.userDetails.UserId})`),
     }).then(count => {
         db.User.findAll({
-            attributes: ["id", "firstName", "lastName", "photo", [db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']],
+            attributes: ["id", "firstName", "lastName", "photo", [db.sequelize.literal("3959 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']],
             order: [[db.sequelize.literal(`"distance"`), 'ASC']],
-            where: db.sequelize.literal(`6371 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(${longitude}) - radians(longitude)) + sin(radians(${latitude})) * sin(radians(latitude))) <= ${km} AND "id" != ${req.userDetails.UserId} AND "id" NOT IN (SELECT "likedUserId" FROM "Likes" AS "Like" WHERE "UserId" = ${req.userDetails.UserId})`),
+            where: db.sequelize.literal(`3959 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(${longitude}) - radians(longitude)) + sin(radians(${latitude})) * sin(radians(latitude))) <= ${km} AND "id" != ${req.userDetails.UserId} AND "id" NOT IN (SELECT "likedUserId" FROM "Likes" AS "Like" WHERE "UserId" = ${req.userDetails.UserId})`),
             include: [{
                 model: db.Pet
             }],
