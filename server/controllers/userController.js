@@ -110,7 +110,7 @@ router.post('/signUp', (req, res, next) => {
                 height: req.body.heights,
                 password: hash,
                 city: req.body.city,
-                State: req.body.State,
+                state: req.body.state,
                 postcode: req.body.postcode,
                 phoneNumber: req.body.phoneNumber,
                 bio: req.body.bio,
@@ -164,7 +164,7 @@ router.post('/', (req, res) => {
                     height: req.body.heights,
                     password: password,
                     city: req.body.city,
-                    State: req.body.State,
+                    state: req.body.state,
                     postcode: req.body.postcode,
                     phoneNumber: req.body.phoneNumber,
                     bio: req.body.bio,
@@ -278,7 +278,7 @@ router.post('/fbCreate', (req, res, next) => {
         // gender: req.body.gender,
         // password: hash,
         // city: req.body.city,
-        // State: req.body.State,
+        // state: req.body.state,
         // postcode: req.body.postcode,
         // phoneNumber: req.body.phoneNumber,
         // bio: req.body.bio,
@@ -470,7 +470,7 @@ router.post('/login', (req, res) => {
                     gender: user.gender,
                     email: user.email,
                     city: user.city,
-                    State: user.State,
+                    state: user.state,
                     postcode: user.postcode,
                     phoneNumber: user.phoneNumber,
                     bio: user.bio,
@@ -490,7 +490,7 @@ router.post('/login', (req, res) => {
                     user.gender,
                     user.email,
                     user.city,
-                    user.State,
+                    user.state,
                     user.postcode,
                     user.phoneNumber,
                     user.is_manual,
@@ -554,7 +554,7 @@ router.post('/fbLogin', (req, res) => {
                     // email: user.email,
                     // password: user.password,
                     // city: user.city,
-                    // State: user.State,
+                    // state: user.state,
                     // postcode: user.postcode,
                     // phoneNumber: user.phoneNumber,
                     // UserId: user.id,
@@ -611,7 +611,7 @@ router.put('/updateAll/', authorize(), (req, res) => {
             gender: req.body.gender,
             email: req.body.email,
             city: req.body.city,
-            State: req.body.State,
+            state: req.body.state,
             postcode: req.body.postcode,
             phoneNumber: req.body.phoneNumber,
             bio: req.body.bio,
@@ -631,7 +631,7 @@ router.put('/updateAll/', authorize(), (req, res) => {
                 req.session.user.email = req.body.email
                 req.session.user.password = req.body.password
                 req.session.user.city = req.body.city
-                req.session.user.State = req.body.State
+                req.session.user.state = req.body.state
                 req.session.user.postcode = req.body.postcode
                 req.session.user.phoneNumber = req.body.phoneNumber
                 req.session.user.bio = req.body.bio
@@ -671,7 +671,7 @@ router.put('/updateUser/', authorize(), async (req, res) => {
         if (req.body.photo) { result.photo = req.body.photo }
         if (req.body.media) { result.media = req.body.media }
         if (req.body.city) { result.city = req.body.city }
-        if (req.body.State) { result.State = req.body.State }
+        if (req.body.state) { result.state = req.body.state }
         if (req.body.postcode) {
             let data = await helpers.locationFromPostalCode(req);
             req.body.latitude = data.latitude

@@ -24,7 +24,7 @@ const sessionUpdate = (req, user) => {
         email: user.email,
         password: user.password,
         city: user.city,
-        State: user.State,
+        state: user.state,
         postcode: user.postcode,
         phoneNumber: user.phoneNumber,
         UserId: user.id,
