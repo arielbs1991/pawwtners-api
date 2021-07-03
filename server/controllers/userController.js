@@ -769,7 +769,8 @@ router.put('/updateUser/', authorize(), async (req, res) => {
 
 //tested +
 router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', authorize(), (req, res) => {
-    const { page, size, latitude, longitude } = req.query;
+    const { page, size } = req.query;
+    const { latitude, longitude } = req.userDetails
     let km = req.userDetails.maximumDistance ? req.userDetails.maximumDistance : 27
     km = (km * 10 / 100) + km
 
