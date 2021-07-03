@@ -3,7 +3,6 @@ const db = require("../models");
 const sequelize = require('../models')
 const Op = sequelize.Sequelize.Op;
 const bcrypt = require("bcryptjs");
-const getIGToken = require('../../utils/facebookAPI/getIGToken.js');
 const helpers = require('../helpers/helpers');
 const authorize = require("../middlewares/authorize");
 const jwt = require('jsonwebtoken');
@@ -151,7 +150,8 @@ router.post('/', (req, res) => {
     }).then(async user => {
         if (req.body.isPrivacyPolicyAccepted) {
             if (user.length == 0) {
-                let password = await helpers.hashPassword(req.body.password)
+                let password = await helpers.hashPassword(req.body.password);
+                let location = await helpers.locationFromPostalCode(req);
                 db.User.create({
                     username: req.body.username,
                     firstName: req.body.firstName,
@@ -171,8 +171,8 @@ router.post('/', (req, res) => {
                     tagline: req.body.tagline,
                     provider: 'manual',
                     is_manual: true,
-                    latitude: req.body.latitude,
-                    longitude: req.body.longitude,
+                    latitude: location.latitude,
+                    longitude: location.longitude,
                     maximumDistance: req.body.maximumDistance
                 })
                     .then(userData => {
@@ -630,7 +630,6 @@ router.put('/updateAll/', authorize(), (req, res) => {
                 req.session.user.gender = req.body.gender
                 req.session.user.email = req.body.email
                 req.session.user.password = req.body.password
-                //TODO: update location data to use geolocation
                 req.session.user.city = req.body.city
                 req.session.user.State = req.body.State
                 req.session.user.postcode = req.body.postcode
@@ -651,7 +650,7 @@ router.put('/updateAll/', authorize(), (req, res) => {
 })
 
 //tested +
-router.put('/updateUser/', authorize(), (req, res) => {
+router.put('/updateUser/', authorize(), async (req, res) => {
     if (!req.userDetails.UserId) {
         res.status(403).end();
     } else {
@@ -673,7 +672,12 @@ router.put('/updateUser/', authorize(), (req, res) => {
         if (req.body.media) { result.media = req.body.media }
         if (req.body.city) { result.city = req.body.city }
         if (req.body.State) { result.State = req.body.State }
-        if (req.body.postcode) { result.postcode = req.body.postcode }
+        if (req.body.postcode) {
+            let data = await helpers.locationFromPostalCode(req);
+            req.body.latitude = data.latitude
+            req.body.longitude = data.longitude
+            result.postcode = req.body.postcode
+        }
         if (req.body.phoneNumber) { result.phoneNumber = req.body.phoneNumber }
         if (req.body.bio) { result.bio = req.body.bio }
         if (req.body.tagline) { result.tagline = req.body.tagline }
