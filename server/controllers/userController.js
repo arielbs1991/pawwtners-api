@@ -823,28 +823,28 @@ router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', authorize
 
 //tested +
 router.put('/updateUserLocation', authorize(), (req, res) => {
-    let lat = req.body.latitude
-    let lng = req.body.longitude
+    // let lat = req.body.latitude
+    // let lng = req.body.longitude
 
-    db.User.update({
-        latitude: lat,
-        longitude: lng
-    },
-        {
-            where: {
-                email: req.userDetails.email
-            }
-        })
-        .then(function (data) {
-            console.log(data);
-            res.json({
-                response_code: "E_SUCCESS",
-                data
-            });
-        }).catch(err => {
-            console.log(err);
-            res.status(500).end();
-        })
+    // db.User.update({
+    //     latitude: lat,
+    //     longitude: lng
+    // },
+    //     {
+    //         where: {
+    //             email: req.userDetails.email
+    //         }
+    //     })
+    //     .then(function (data) {
+    //         console.log(data);
+    res.json({
+        response_code: "E_SUCCESS",
+        // data
+    });
+    // }).catch(err => {
+    //     console.log(err);
+    //     res.status(500).end();
+    // })
 })
 
 router.get('/search-users', authorize(), async (req, res) => {
