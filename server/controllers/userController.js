@@ -452,7 +452,7 @@ router.post('/login', (req, res) => {
                 response_code: "E_MANUAL_LOGIN",
                 message: "Manual Login not Enabled for This User"
             }
-            res.status(200).send(result);
+            res.status(401).send(result);
         }
         else if (user.isPrivacyPolicyAccepted == false || !user.isPrivacyPolicyAccepted) {
             res.status(401).send({ response_code: "E_PRIVACY_POLICY_ACCEPT", message: "Please Accept Privacy Policy" })
