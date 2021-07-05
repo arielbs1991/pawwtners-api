@@ -17,6 +17,12 @@ router.get('/petShops?:latitude?:longitude', authorize(), async (req, res, next)
                 data: data.data
             }
             return res.status(200).send(result)
+        } else if (data.data.status === "ZERO_RESULTS") {
+            let result = {
+                response_code: "ZERO_RESULTS",
+                message: "No Result Found"
+            }
+            return res.status(401).send(result)
         }
         else {
             console.log(JSON.stringify(data))
