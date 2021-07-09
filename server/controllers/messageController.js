@@ -24,13 +24,22 @@ router.get('/chathistory?:page?:limit?:chatId', /* authorize(), */ async (req, r
             order: [["id", "DESC"]]
         });
         data = helpers.getPagingData(messages, page, limit);
-
+        const getNextPage = (page, limit, total, totalPages) => {
+            if (page === (totalPages - 1)) {
+                return null
+            }
+            else if ((total / limit) > page) {
+                return page + 1;
+            }
+            return null
+        }
+        const nextPage = getNextPage(data.currentPage, limit, data.totalItems, data.totalPages)
         const result = {
             messages: data.data,
             totalItems: data.totalItems,
             totalPages: data.totalPages,
             currentPage: data.currentPage,
-            nextPage: data.nextPage,
+            nextPage: nextPage,
             previousPage: data.previousPage
         }
         return res.json(result);

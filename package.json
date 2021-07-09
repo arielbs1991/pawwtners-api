@@ -5,7 +5,9 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "staging": "export NODE_ENV=staging&& nodemon server.js",
+    "prod": "set NODE_ENV=production&& nodemon server.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +21,7 @@
   },
   "homepage": "https://github.com/arielbs1991/pawwtners-api#readme",
   "dependencies": {
+    "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",
     "bindings": "^1.5.0",
     "body-parser": "^1.13.2",
@@ -28,22 +31,16 @@
     "cors": "^2.8.5",
     "debug": "^4.1.1",
     "dotenv": "^6.2.0",
-    "dottie": "^2.0.0",
-    "ejs": "^2.3.3",
     "express": "^4.13.1",
     "express-session": "^1.11.3",
     "faker": "^5.5.3",
-    "inflection": "1.12.0",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.20",
     "moment": "^2.26.0",
     "moment-timezone": "^0.5.31",
     "morgan": "^1.6.1",
     "multer": "^1.4.2",
-    "mysql": "^2.18.1",
-    "mysql2": "^2.2.5",
     "nodemailer": "^6.4.16",
-    "odbc": "^2.3.6",
     "passport": "^0.4.0",
     "passport-facebook": "^2.0.0",
     "passport-google-oauth20": "^2.0.0",
@@ -51,19 +48,11 @@
     "path": "^0.12.7",
     "pg": "^8.6.0",
     "pg2": "0.0.1",
-    "react": "^17.0.1",
-    "retry-as-promised": "^3.2.0",
-    "semver": "^7.3.2",
     "sequelize": "^6.6.2",
     "sequelize-pool": "^6.0.0",
     "socket.io": "^2.4.0",
-    "toposort-class": "^1.0.1",
-    "twilio": "^3.55.1",
-    "twilio-video": "^2.8.0",
     "username-generator": "^1.1.0",
-    "uuid": "^8.1.0",
-    "validator": "^10.11.0",
-    "wkx": "^0.5.0"
+    "validator": "^10.11.0"
   },
   "devDependencies": {}
 }

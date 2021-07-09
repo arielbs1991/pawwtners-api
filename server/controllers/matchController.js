@@ -55,7 +55,7 @@ router.get('/getMatchByUserId?:latitude?:longitude?:page?:size', authorize(), (r
             matchedUserId: req.userDetails.UserId
         },
         include: {
-            model: db.User, attributes: ["firstName", "lastName", "photo", [db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']],
+            model: db.User, attributes: ["firstName", "lastName", "photo", [db.sequelize.literal("3959 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']],
             include: [{
                 model: db.Pet
             }],

@@ -5,7 +5,8 @@ const jwt = require('jsonwebtoken')
 const env = process.env.NODE_ENV || 'development';
 const { jwt_secret, jwt_issuer } = require('../config/config.json')[env];
 const bcrypt = require('bcryptjs');
-
+const axios = require('axios');
+const config = require("../config/config.json")[env];;
 
 /**
  * Function to Update Data In session on user data update
@@ -23,7 +24,7 @@ const sessionUpdate = (req, user) => {
         email: user.email,
         password: user.password,
         city: user.city,
-        State: user.State,
+        state: user.state,
         postcode: user.postcode,
         phoneNumber: user.phoneNumber,
         UserId: user.id,
@@ -135,13 +136,112 @@ const comparePassword = (hashedPassword, password) => {
     return bcrypt.compareSync(password, hashedPassword);
 };
 
+
+
+const locationFromPostalCode = async (req) => {
+    try {
+        let postcode
+        if (req.body.postcode)
+            postcode = req.body.postcode
+        else
+            postcode = req.userDetails.postcode
+        const { data } = await axios.get(
+            `https://maps.googleapis.com/maps/api/geocode/json?key=${config.GOOGLE_MAP_TOKEN}&components=postal_code:${postcode}`
+        );
+        console.log()
+        if (data.status === "OK") {
+            let latitude = ''
+            let longitude = ''
+            let latlang = data.data.results
+            for (let i = 0; i < latlang.length; i++) {
+                latitude = latlang[i].geometry.location.lat
+                longitude = latlang[i].geometry.location.lng
+                break;
+            }
+            let location = { latitude: latitude, longitude: longitude }
+
+            return location;
+        }
+        else {
+            let city
+            if (req.body.city)
+                city = req.body.city
+            else
+                city = req.userDetails.city
+            const data = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?key=${config.GOOGLE_MAP_TOKEN}&address=${city}&sensor=true`);
+
+            if (data.data.status === "OK") {
+                let latitude = ''
+                let longitude = ''
+                let latlang = data.data.results
+                for (let i = 0; i < latlang.length; i++) {
+                    latitude = latlang[i].geometry.location.lat
+                    longitude = latlang[i].geometry.location.lng
+                    break;
+                }
+                let location = { latitude: latitude, longitude: longitude }
+                return location;
+            }
+        }
+    }
+    catch (err) {
+        console.log(err);
+        return err;
+    }
+}
+
+
+const getPostalCode = async (req) => {
+    try {
+
+        const { data } = await axios.get(
+            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${req.query.latitude},${req.query.longitude}&key=${config.GOOGLE_MAP_TOKEN}`
+        )
+
+        if (data.status === "OK") {
+            let is_postalcode = 0
+            let postal_code = ''
+            let zip_code = data.results
+            for (let i = 0; i < zip_code.length; i++) {
+                if (is_postalcode === 1) {
+                    break;
+                }
+                let data1 = zip_code[i].address_components
+                if (data1.length !== 0)
+                    for (let a = 0; a < data1.length; a++) {
+                        const element = data1[a].types;
+                        let data = element.filter(item => item === "postal_code")
+                        if (data.length !== 0) {
+                            is_postalcode = 1
+                            postal_code = data1[a].long_name
+                            break;
+                        }
+                    }
+            }
+            return postal_code;
+        }
+        else {
+            console.log(JSON.stringify(data))
+            return res.status(500).end();
+        }
+    }
+    catch (err) {
+        console.log(err);
+        return err
+    }
+}
+
+
+
 let validations = {
     generateUserToken,
     sessionUpdate,
     getPagination,
     getPagingData,
     hashPassword,
-    comparePassword
+    comparePassword,
+    locationFromPostalCode,
+    getPostalCode
 }
 
 module.exports = validations;

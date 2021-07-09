@@ -18,6 +18,11 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.JSON,
             allowNull: true,
         },
+        video: {
+            type: DataTypes.JSON,
+            allowNull: true,
+            default: []
+        },
         breed: {
             type: DataTypes.STRING,
             allowNull: true

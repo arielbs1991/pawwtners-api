@@ -3,7 +3,6 @@ const db = require("../models");
 const sequelize = require('../models')
 const Op = sequelize.Sequelize.Op;
 const bcrypt = require("bcryptjs");
-const getIGToken = require('../../utils/facebookAPI/getIGToken.js');
 const helpers = require('../helpers/helpers');
 const authorize = require("../middlewares/authorize");
 const jwt = require('jsonwebtoken');
@@ -35,6 +34,9 @@ router.get('/finduser/:id', authorize(), (req, res) => {
     db.User.findOne({
         where: {
             id: req.params.id
+        },
+        include: {
+            model: db.Pet
         },
         attributes: { exclude: ['password'] }
     })
@@ -108,7 +110,7 @@ router.post('/signUp', (req, res, next) => {
                 height: req.body.heights,
                 password: hash,
                 city: req.body.city,
-                State: req.body.State,
+                state: req.body.state,
                 postcode: req.body.postcode,
                 phoneNumber: req.body.phoneNumber,
                 bio: req.body.bio,
@@ -148,7 +150,8 @@ router.post('/', (req, res) => {
     }).then(async user => {
         if (req.body.isPrivacyPolicyAccepted) {
             if (user.length == 0) {
-                let password = await helpers.hashPassword(req.body.password)
+                let password = await helpers.hashPassword(req.body.password);
+                let location = await helpers.locationFromPostalCode(req);
                 db.User.create({
                     username: req.body.username,
                     firstName: req.body.firstName,
@@ -161,15 +164,15 @@ router.post('/', (req, res) => {
                     height: req.body.heights,
                     password: password,
                     city: req.body.city,
-                    State: req.body.State,
+                    state: req.body.state,
                     postcode: req.body.postcode,
                     phoneNumber: req.body.phoneNumber,
                     bio: req.body.bio,
                     tagline: req.body.tagline,
                     provider: 'manual',
                     is_manual: true,
-                    latitude: req.body.latitude,
-                    longitude: req.body.longitude,
+                    latitude: location.latitude,
+                    longitude: location.longitude,
                     maximumDistance: req.body.maximumDistance
                 })
                     .then(userData => {
@@ -275,7 +278,7 @@ router.post('/fbCreate', (req, res, next) => {
         // gender: req.body.gender,
         // password: hash,
         // city: req.body.city,
-        // State: req.body.State,
+        // state: req.body.state,
         // postcode: req.body.postcode,
         // phoneNumber: req.body.phoneNumber,
         // bio: req.body.bio,
@@ -374,8 +377,8 @@ router.put("/updatePrivacyPolicy", (req, res) => {
                 })
                     .then(user => {
                         let result = {
-                            response_code : "E_SUCCESS",
-                            data : user
+                            response_code: "E_SUCCESS",
+                            data: user
                         }
                         res.status(200).send(result)
                     })
@@ -409,8 +412,8 @@ router.put("/updatePrivacyPolicy", (req, res) => {
                 })
                     .then(user => {
                         let result = {
-                            response_code : "E_SUCCESS",
-                            data : user
+                            response_code: "E_SUCCESS",
+                            data: user
                         }
                         res.status(200).send(result)
                     })
@@ -440,7 +443,7 @@ router.post('/login', (req, res) => {
         if (!user) {
             let result = {
                 response_code: "E_USER_NOT_EXIST",
-                message: "No such user exists With This Email"
+                message: "No such user exists with this e-mail"
             }
             res.status(404).send(result);
         }
@@ -449,7 +452,7 @@ router.post('/login', (req, res) => {
                 response_code: "E_MANUAL_LOGIN",
                 message: "Manual Login not Enabled for This User"
             }
-            res.status(200).send(result);
+            res.status(401).send(result);
         }
         else if (user.isPrivacyPolicyAccepted == false || !user.isPrivacyPolicyAccepted) {
             res.status(401).send({ response_code: "E_PRIVACY_POLICY_ACCEPT", message: "Please Accept Privacy Policy" })
@@ -467,7 +470,7 @@ router.post('/login', (req, res) => {
                     gender: user.gender,
                     email: user.email,
                     city: user.city,
-                    State: user.State,
+                    state: user.state,
                     postcode: user.postcode,
                     phoneNumber: user.phoneNumber,
                     bio: user.bio,
@@ -487,7 +490,7 @@ router.post('/login', (req, res) => {
                     user.gender,
                     user.email,
                     user.city,
-                    user.State,
+                    user.state,
                     user.postcode,
                     user.phoneNumber,
                     user.is_manual,
@@ -551,7 +554,7 @@ router.post('/fbLogin', (req, res) => {
                     // email: user.email,
                     // password: user.password,
                     // city: user.city,
-                    // State: user.State,
+                    // state: user.state,
                     // postcode: user.postcode,
                     // phoneNumber: user.phoneNumber,
                     // UserId: user.id,
@@ -608,7 +611,7 @@ router.put('/updateAll/', authorize(), (req, res) => {
             gender: req.body.gender,
             email: req.body.email,
             city: req.body.city,
-            State: req.body.State,
+            state: req.body.state,
             postcode: req.body.postcode,
             phoneNumber: req.body.phoneNumber,
             bio: req.body.bio,
@@ -627,9 +630,8 @@ router.put('/updateAll/', authorize(), (req, res) => {
                 req.session.user.gender = req.body.gender
                 req.session.user.email = req.body.email
                 req.session.user.password = req.body.password
-                //TODO: update location data to use geolocation
                 req.session.user.city = req.body.city
-                req.session.user.State = req.body.State
+                req.session.user.state = req.body.state
                 req.session.user.postcode = req.body.postcode
                 req.session.user.phoneNumber = req.body.phoneNumber
                 req.session.user.bio = req.body.bio
@@ -648,7 +650,7 @@ router.put('/updateAll/', authorize(), (req, res) => {
 })
 
 //tested +
-router.put('/updateUser/', authorize(), (req, res) => {
+router.put('/updateUser/', authorize(), async (req, res) => {
     if (!req.userDetails.UserId) {
         res.status(403).end();
     } else {
@@ -669,8 +671,13 @@ router.put('/updateUser/', authorize(), (req, res) => {
         if (req.body.photo) { result.photo = req.body.photo }
         if (req.body.media) { result.media = req.body.media }
         if (req.body.city) { result.city = req.body.city }
-        if (req.body.State) { result.State = req.body.State }
-        if (req.body.postcode) { result.postcode = req.body.postcode }
+        if (req.body.state) { result.state = req.body.state }
+        if (req.body.postcode) {
+            let data = await helpers.locationFromPostalCode(req);
+            req.body.latitude = data.latitude
+            req.body.longitude = data.longitude
+            result.postcode = req.body.postcode
+        }
         if (req.body.phoneNumber) { result.phoneNumber = req.body.phoneNumber }
         if (req.body.bio) { result.bio = req.body.bio }
         if (req.body.tagline) { result.tagline = req.body.tagline }
@@ -682,6 +689,7 @@ router.put('/updateUser/', authorize(), (req, res) => {
             if (req.body.pet.nickName) { pet.nickName = req.body.pet.nickName }
             if (req.body.pet.type) { pet.type = req.body.pet.type }
             if (req.body.pet.photo) { pet.photo = req.body.pet.photo }
+            if (req.body.pet.video) { pet.video = req.body.pet.video }
             if (req.body.pet.breed) { pet.breed = req.body.pet.breed }
             if (req.body.pet.secondaryBreed) { pet.secondaryBreed = req.body.pet.secondaryBreed }
             if (req.body.pet.age) { pet.age = req.body.pet.age }
@@ -761,18 +769,19 @@ router.put('/updateUser/', authorize(), (req, res) => {
 
 //tested +
 router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', authorize(), (req, res) => {
-    const { page, size, latitude, longitude } = req.query;
+    const { page, size } = req.query;
+    const { latitude, longitude } = req.userDetails
     let km = req.userDetails.maximumDistance ? req.userDetails.maximumDistance : 27
     km = (km * 10 / 100) + km
 
     const { limit, offset } = helpers.getPagination(page, size);
     db.User.count({
-        where: db.sequelize.literal(`6371 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(${longitude}) - radians(longitude)) + sin(radians(${latitude})) * sin(radians(latitude))) <= ${km} AND "id" != ${req.userDetails.UserId} AND "id" NOT IN (SELECT "likedUserId" FROM "Likes" AS "Like" WHERE "UserId" = ${req.userDetails.UserId})`),
+        where: db.sequelize.literal(`3959 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(${longitude}) - radians(longitude)) + sin(radians(${latitude})) * sin(radians(latitude))) <= ${km} AND "id" != ${req.userDetails.UserId} AND "id" NOT IN (SELECT "likedUserId" FROM "Likes" AS "Like" WHERE "UserId" = ${req.userDetails.UserId})`),
     }).then(count => {
         db.User.findAll({
-            attributes: ["id", "firstName", "lastName", "photo", [db.sequelize.literal("6371 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']],
+            attributes: ["id", "firstName", "lastName", "photo", [db.sequelize.literal("3959 * acos(cos(radians(" + latitude + ")) * cos(radians(latitude)) * cos(radians(" + longitude + ") - radians(longitude)) + sin(radians(" + latitude + ")) * sin(radians(latitude)))"), 'distance']],
             order: [[db.sequelize.literal(`"distance"`), 'ASC']],
-            where: db.sequelize.literal(`6371 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(${longitude}) - radians(longitude)) + sin(radians(${latitude})) * sin(radians(latitude))) <= ${km} AND "id" != ${req.userDetails.UserId} AND "id" NOT IN (SELECT "likedUserId" FROM "Likes" AS "Like" WHERE "UserId" = ${req.userDetails.UserId})`),
+            where: db.sequelize.literal(`3959 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(${longitude}) - radians(longitude)) + sin(radians(${latitude})) * sin(radians(latitude))) <= ${km} AND "id" != ${req.userDetails.UserId} AND "id" NOT IN (SELECT "likedUserId" FROM "Likes" AS "Like" WHERE "UserId" = ${req.userDetails.UserId})`),
             include: [{
                 model: db.Pet
             }],
@@ -814,28 +823,28 @@ router.get('/nearestUsersByLocation?:latitude?:longitude?:page?:size', authorize
 
 //tested +
 router.put('/updateUserLocation', authorize(), (req, res) => {
-    let lat = req.body.latitude
-    let lng = req.body.longitude
+    // let lat = req.body.latitude
+    // let lng = req.body.longitude
 
-    db.User.update({
-        latitude: lat,
-        longitude: lng
-    },
-        {
-            where: {
-                email: req.userDetails.email
-            }
-        })
-        .then(function (data) {
-            console.log(data);
-            res.json({
-                response_code: "E_SUCCESS",
-                data
-            });
-        }).catch(err => {
-            console.log(err);
-            res.status(500).end();
-        })
+    // db.User.update({
+    //     latitude: lat,
+    //     longitude: lng
+    // },
+    //     {
+    //         where: {
+    //             email: req.userDetails.email
+    //         }
+    //     })
+    //     .then(function (data) {
+    //         console.log(data);
+    res.json({
+        response_code: "E_SUCCESS",
+        // data
+    });
+    // }).catch(err => {
+    //     console.log(err);
+    //     res.status(500).end();
+    // })
 })
 
 router.get('/search-users', authorize(), async (req, res) => {

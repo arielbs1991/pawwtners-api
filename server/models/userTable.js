@@ -68,7 +68,7 @@ module.exports = function (sequelize, DataTypes) {
             //     len: [1]
             // }
         },
-        State: {
+        state: {
             type: DataTypes.STRING,
             allowNull: true,
             notEmpty: false,

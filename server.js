@@ -12,7 +12,9 @@ const FacebookStrategy = require('passport-facebook').Strategy;
 const InstagramStrategy = require('passport-instagram').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const helpers = require('./server/helpers/helpers')
-var PORT = process.env.PORT || 3001;
+const env = process.env.NODE_ENV || 'development';
+const config = require(__dirname + '/server/config/config.json')[env];
+var PORT = config.PORT || 3001;
 let path = require('path');
 const username = require('username-generator')
 var server = require("http").Server(app);
@@ -69,14 +71,14 @@ app.use((req, res, next) => {
 // }
 // }))
 
-// app.get("/", (req, res) => {
-//   res.send("nothing to see here");
-// })
+app.get("/", (req, res) => {
+  res.send("nothing to see here");
+})
 
 passport.use(new FacebookStrategy({
-  clientID: process.env.FACEBOOK_APP_ID,
-  clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-  callbackURL: '/facebook/callback',
+  clientID: config.FACEBOOK_APP_ID,
+  clientSecret: config.FACEBOOK_CLIENT_SECRET,
+  callbackURL: config.FACEBOOK_CALLBACK,
   profileFields: ['id', 'displayName', 'email', 'name', 'photos'],
   passReqToCallback: true,
 },
@@ -116,9 +118,9 @@ passport.use(new FacebookStrategy({
   }));
 
 passport.use(new InstagramStrategy({
-  clientID: process.env.INSTAGRAM_APP_ID,
-  clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
-  callbackURL: "https://localhost:3001/instagram/callback",
+  clientID: config.INSTAGRAM_APP_ID,
+  clientSecret: config.INSTAGRAM_CLIENT_SECRET,
+  callbackURL: config.NODE_ENV === "production" ? "https://pawwtners-api-aayqs.ondigitalocean.app/" : "https://localhost:3001/instagram/callback",
   passReqToCallback: true,
   skipUserProfile: true
 },
@@ -133,9 +135,9 @@ passport.use(new InstagramStrategy({
 ));
 
 passport.use(new GoogleStrategy({
-  clientID: process.env.GOOGLE_APP_ID,
-  clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-  callbackURL: "/google/callback",
+  clientID: config.GOOGLE_APP_ID,
+  clientSecret: config.GOOGLE_CLIENT_SECRET,
+  callbackURL: config.GOOGLE_CALLBACK,
   passReqToCallback: true,
 },
   function (req, accessToken, refreshToken, profile, cb) {
@@ -193,17 +195,17 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
-app.get('/facebook/callback', passport.authenticate('facebook', { failureRedirect: `${process.env.FRONTEND_HOST}/error` }), async function (req, res) {
+app.get('/facebook/callback', passport.authenticate('facebook', { failureRedirect: `${config.FRONTEND_HOST}/error` }), async function (req, res) {
   let data = await db.User.findOne({
     where: {
       email: req.session.passport.user._json.email
     }
   })
   // access_token
-  let token = await helpers.generateUserToken(data.id, data.username, data.firstName, data.lastName, data.gender, data.email, data.city, data.State, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
+  let token = await helpers.generateUserToken(data.id, data.username, data.firstName, data.lastName, data.gender, data.email, data.city, data.state, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
 
   req = await helpers.sessionUpdate(req, data)
-  res.redirect(`${process.env.FRONTEND_HOST}/swipe?${token}`);
+  res.redirect(`${config.FRONTEND_HOST}/swipe?${token}`);
 });
 
 // app.get('/instagram', passport.authenticate('instagram', { scope: ['user_profile', 'user_media'] }));
@@ -212,17 +214,17 @@ app.get('/facebook/callback', passport.authenticate('facebook', { failureRedirec
 // });
 
 app.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-app.get('/google/callback', passport.authenticate('google', { failureRedirect: `${process.env.FRONTEND_HOST}/error` }), async function (req, res) {
+app.get('/google/callback', passport.authenticate('google', { failureRedirect: `${config.FRONTEND_HOST}/error` }), async function (req, res) {
   let data = await db.User.findOne({
     where: {
       email: req.session.passport.user._json.email
     }
   })
   // access_token
-  let token = await helpers.generateUserToken(data.id, data.username, data.firstName, data.lastName, data.gender, data.email, data.city, data.State, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
+  let token = await helpers.generateUserToken(data.id, data.username, data.firstName, data.lastName, data.gender, data.email, data.city, data.state, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
   req = await helpers.sessionUpdate(req, data)
 
-  res.redirect(`${process.env.FRONTEND_HOST}/swipe?${token}`);
+  res.redirect(`${config.FRONTEND_HOST}/swipe?${token}`);
 });
 
 app.get('/profile',
@@ -242,6 +244,8 @@ const likeController = require("./server/controllers/likeController.js");
 app.use("/api/like", likeController);
 const messageController = require("./server/controllers/messageController");
 app.use("/api/message", messageController);
+const mapController = require("./server/controllers/mapController");
+app.use("/api/map", mapController);
 // const { use } = require("./controllers/userController.js");
 
 
@@ -357,6 +361,7 @@ db.sequelize.sync({ force: false }).then(async function () {
   server.listen(PORT, function () {
     console.log("listen to me, heroku. Changes have been made, I swear");
     console.log("App listening on PORT " + PORT);
+    console.log("ENVIRONMENT > > > > > > > > > > > > > > > > > > ", process.env.NODE_ENV)
     //testing sms
     // sendSMS;
   });
