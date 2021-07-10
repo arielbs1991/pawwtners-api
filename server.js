@@ -218,6 +218,8 @@ app.get('/facebook/callback', passport.authenticate('facebook', { failureRedirec
 
 app.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 app.get('/google/callback', passport.authenticate('google', { failureRedirect: `${config.FRONTEND_HOST}/error` }), async function (req, res) {
+  console.log("req.session.passport.user._json.email >> ", req.session.passport.user._json.email);
+
   let data = await db.User.findOne({
     where: {
       email: req.session.passport.user._json.email
@@ -225,8 +227,10 @@ app.get('/google/callback', passport.authenticate('google', { failureRedirect: `
   })
   // access_token
   let token = await helpers.generateUserToken(data.id, data.firstName, data.lastName, data.gender, data.email, data.city, data.state, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
+
+  console.log("User Access Token >> ", token);
   req = await helpers.sessionUpdate(req, data)
-  console.log(`${config.FRONTEND_HOST}/swipe?${token}`)
+  console.log(`User Redirect Url >> ${config.FRONTEND_HOST}/swipe?${token}`);
   res.redirect(`${config.FRONTEND_HOST}/swipe?${token}`);
 });
 
