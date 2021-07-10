@@ -202,7 +202,7 @@ app.get('/facebook/callback', passport.authenticate('facebook', { failureRedirec
     }
   })
   // access_token
-  let token = await helpers.generateUserToken(data.id, data.username, data.firstName, data.lastName, data.gender, data.email, data.city, data.state, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
+  let token = await helpers.generateUserToken(data.id, data.firstName, data.lastName, data.gender, data.email, data.city, data.state, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
 
   req = await helpers.sessionUpdate(req, data)
   res.redirect(`${config.FRONTEND_HOST}/swipe?${token}`);
@@ -221,7 +221,7 @@ app.get('/google/callback', passport.authenticate('google', { failureRedirect: `
     }
   })
   // access_token
-  let token = await helpers.generateUserToken(data.id, data.username, data.firstName, data.lastName, data.gender, data.email, data.city, data.state, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
+  let token = await helpers.generateUserToken(data.id, data.firstName, data.lastName, data.gender, data.email, data.city, data.state, data.postcode, data.phoneNumber, data.is_manual, data.provider, data.latitude, data.longitude, data.maximumDistance)
   req = await helpers.sessionUpdate(req, data)
 
   res.redirect(`${config.FRONTEND_HOST}/swipe?${token}`);
