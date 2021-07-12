@@ -3,10 +3,10 @@
 /* eslint-disable camelcase */
 const jwt = require('jsonwebtoken')
 const env = process.env.NODE_ENV || 'development';
-const { jwt_secret, jwt_issuer } = require('../config/config.json')[env];
+const { jwt_secret, jwt_issuer } = require('../config/config.js')[env];
 const bcrypt = require('bcryptjs');
 const axios = require('axios');
-const config = require("../config/config.json")[env];;
+const config = require("../config/config.js")[env];;
 
 /**
  * Function to Update Data In session on user data update

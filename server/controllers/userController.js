@@ -7,7 +7,7 @@ const helpers = require('../helpers/helpers');
 const authorize = require("../middlewares/authorize");
 const jwt = require('jsonwebtoken');
 const env = process.env.NODE_ENV || 'development';
-const config = require("../config/config.json")[env];;
+const config = require("../config/config.js")[env];;
 const saltRounds = 12;
 
 //BASE ROUTE FOR THIS FILE: /api/user

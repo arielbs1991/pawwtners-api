@@ -13,7 +13,7 @@ const InstagramStrategy = require('passport-instagram').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const helpers = require('./server/helpers/helpers')
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/server/config/config.json')[env];
+const config = require(__dirname + '/server/config/config.js')[env];
 var PORT = config.PORT || 3001;
 let path = require('path');
 const username = require('username-generator')
@@ -117,22 +117,22 @@ passport.use(new FacebookStrategy({
     return cb(null, profile);
   }));
 
-passport.use(new InstagramStrategy({
-  clientID: config.INSTAGRAM_APP_ID,
-  clientSecret: config.INSTAGRAM_CLIENT_SECRET,
-  callbackURL: config.NODE_ENV === "production" ? "https://pawwtners-api-aayqs.ondigitalocean.app/" : "https://localhost:3001/instagram/callback",
-  passReqToCallback: true,
-  skipUserProfile: true
-},
-  function (req, accessToken, refreshToken, params, _profile, cb) {
-    console.log(params)
-    if (typeof params === 'undefined' || params === null || params === {}) {
-      return cb(new Error('invalid data from instagram'))
-    }
-    const profile = params;
-    return cb(null, profile);
-  }
-));
+// passport.use(new InstagramStrategy({
+//   clientID: config.INSTAGRAM_APP_ID,
+//   clientSecret: config.INSTAGRAM_CLIENT_SECRET,
+//   callbackURL: config.NODE_ENV === "production" ? "https://pawwtners-api-aayqs.ondigitalocean.app/" : "https://localhost:3001/instagram/callback",
+//   passReqToCallback: true,
+//   skipUserProfile: true
+// },
+//   function (req, accessToken, refreshToken, params, _profile, cb) {
+//     console.log(params)
+//     if (typeof params === 'undefined' || params === null || params === {}) {
+//       return cb(new Error('invalid data from instagram'))
+//     }
+//     const profile = params;
+//     return cb(null, profile);
+//   }
+// ));
 
 passport.use(new GoogleStrategy({
   clientID: config.GOOGLE_APP_ID,

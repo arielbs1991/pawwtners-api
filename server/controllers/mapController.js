@@ -1,7 +1,7 @@
 const axios = require('axios')
 const router = require('express').Router()
 const env = process.env.NODE_ENV || 'development';
-const config = require('../config/config.json')[env];
+const config = require('../config/config.js')[env];
 const authorize = require('../middlewares/authorize');
 
 router.get('/petShops?:latitude?:longitude', authorize(), async (req, res, next) => {
